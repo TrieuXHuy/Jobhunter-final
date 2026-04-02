@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { callLogout } from '@/config/api';
 import { setLogoutAction } from '@/redux/slice/accountSlide';
+import { hasAnyAdminPermission } from '@/config/permission';
 
 const Header = (props: any) => {
     const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Header = (props: any) => {
 
     const isAuthenticated = useAppSelector(state => state.account.isAuthenticated);
     const user = useAppSelector(state => state.account.user);
+    const canAccessAdmin = hasAnyAdminPermission(user);
     const [openMobileMenu, setOpenMobileMenu] = useState<boolean>(false);
 
     const [current, setCurrent] = useState('home');
@@ -60,7 +62,11 @@ const Header = (props: any) => {
         }
     }
 
-    const itemsDropdown = [
+    const itemsDropdown: MenuProps['items'] = [
+        canAccessAdmin ? {
+            label: <Link to={'/admin'}>Trang quản trị</Link>,
+            key: 'admin',
+        } : null,
         {
             label: <label
                 style={{ cursor: 'pointer' }}
@@ -69,7 +75,7 @@ const Header = (props: any) => {
             key: 'logout',
             icon: <LogoutOutlined />
         },
-    ];
+    ].filter(Boolean) as MenuProps['items'];
 
     const itemsMobiles = [...items, ...itemsDropdown];
 
