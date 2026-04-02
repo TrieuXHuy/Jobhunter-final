@@ -36,6 +36,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
         System.out.println(">>> httpMethod= " + httpMethod);
         System.out.println(">>> requestURI= " + requestURI);
 
+        // File endpoints are handled by authentication and should not be blocked by DB permission mapping.
+        if (requestURI.equals("/api/v1/files") || requestURI.startsWith("/api/v1/files/")) {
+            return true;
+        }
+
         // check permission
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtil.getCurrentUserLogin().get()

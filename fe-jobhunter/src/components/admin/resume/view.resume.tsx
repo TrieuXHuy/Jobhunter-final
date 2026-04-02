@@ -1,4 +1,5 @@
 import { callUpdateResumeStatus } from "@/config/api";
+import axios from "@/config/axios-customize";
 import { IResume } from "@/types/backend";
 import { Button, Descriptions, Drawer, Form, Select, Space, Typography, message, notification } from "antd";
 import dayjs from 'dayjs';
@@ -14,21 +15,111 @@ interface IProps {
 }
 const ViewDetailResume = (props: IProps) => {
     const [isSubmit, setIsSubmit] = useState<boolean>(false);
+    const [isHandlingCv, setIsHandlingCv] = useState<boolean>(false);
     const { onClose, open, dataInit, setDataInit, reloadTable } = props;
     const [form] = Form.useForm();
 
-    const buildResumeUrl = (rawUrl?: string) => {
+    const resolveResumeFileName = (rawUrl?: string) => {
         if (!rawUrl) return "";
 
         const trimmed = rawUrl.trim();
-        if (/^https?:\/\//i.test(trimmed)) return trimmed;
-        if (trimmed.startsWith('/storage/')) {
-            return `${import.meta.env.VITE_BACKEND_URL}${trimmed}`;
+        if (/^https?:\/\//i.test(trimmed)) {
+            try {
+                const parsed = new URL(trimmed);
+                const queryFile = parsed.searchParams.get('fileName');
+                if (queryFile) return queryFile;
+                const segments = parsed.pathname.split('/').filter(Boolean);
+                return segments.length > 0 ? segments[segments.length - 1] : "";
+            } catch {
+                return "";
+            }
         }
-        return `${import.meta.env.VITE_BACKEND_URL}/storage/resume/${trimmed}`;
+
+        if (trimmed.includes('fileName=')) {
+            try {
+                const query = trimmed.includes('?') ? trimmed.split('?')[1] : trimmed;
+                const queryParams = new URLSearchParams(query);
+                const queryFile = queryParams.get('fileName');
+                return queryFile || "";
+            } catch {
+                return "";
+            }
+        }
+
+        if (trimmed.startsWith('/storage/')) {
+            const segments = trimmed.split('/').filter(Boolean);
+            return segments.length > 0 ? segments[segments.length - 1] : "";
+        }
+
+        return trimmed;
     };
 
-    const resumeUrl = buildResumeUrl(dataInit?.url);
+    const getFileExtension = (fileName?: string) => {
+        if (!fileName) return "";
+        const segments = fileName.split('.');
+        return segments.length > 1 ? segments[segments.length - 1].toLowerCase() : "";
+    };
+
+    const resumeFileName = resolveResumeFileName(dataInit?.url);
+    const previewUrl = resumeFileName
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/v1/files/preview?fileName=${encodeURIComponent(resumeFileName)}&folder=resume`
+        : "";
+    const downloadUrl = resumeFileName
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/v1/files?fileName=${encodeURIComponent(resumeFileName)}&folder=resume`
+        : "";
+    const previewableExtensions = new Set(['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'txt']);
+    const isPreviewableInBrowser = previewableExtensions.has(getFileExtension(resumeFileName));
+
+    const handlePreviewCv = async () => {
+        if (!previewUrl) return;
+
+        if (!isPreviewableInBrowser) {
+            notification.info({
+                message: 'Định dạng này không hỗ trợ xem trực tiếp',
+                description: 'File Word thường không preview trực tiếp trên trình duyệt. Hệ thống sẽ tải CV về máy để bạn mở bằng Office.',
+            });
+            await handleDownloadCv();
+            return;
+        }
+
+        try {
+            setIsHandlingCv(true);
+            const blob = await axios.get(previewUrl, { responseType: 'blob' as any });
+            const objectUrl = window.URL.createObjectURL(blob as Blob);
+            window.open(objectUrl, '_blank', 'noopener,noreferrer');
+            window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 30000);
+        } catch (error) {
+            notification.error({
+                message: 'Có lỗi xảy ra',
+                description: 'Không thể mở CV. Vui lòng thử lại.',
+            });
+        } finally {
+            setIsHandlingCv(false);
+        }
+    };
+
+    const handleDownloadCv = async () => {
+        if (!downloadUrl) return;
+        try {
+            setIsHandlingCv(true);
+            const blob = await axios.get(downloadUrl, { responseType: 'blob' as any });
+            const objectUrl = window.URL.createObjectURL(blob as Blob);
+            const anchor = document.createElement('a');
+            anchor.href = objectUrl;
+            anchor.download = resumeFileName || 'resume-file';
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            window.URL.revokeObjectURL(objectUrl);
+        } catch (error) {
+            notification.error({
+                message: 'Có lỗi xảy ra',
+                description: 'Không thể tải CV. Vui lòng thử lại.',
+            });
+        } finally {
+            setIsHandlingCv(false);
+        }
+    };
 
     const handleChangeStatus = async () => {
         setIsSubmit(true);
@@ -109,18 +200,18 @@ const ViewDetailResume = (props: IProps) => {
                     <Descriptions.Item label="Ngày sửa">{dataInit && dataInit.updatedAt ? dayjs(dataInit.updatedAt).format('DD-MM-YYYY HH:mm:ss') : ""}</Descriptions.Item>
 
                     <Descriptions.Item label="CV" span={2}>
-                        {resumeUrl ? (
+                        {previewUrl ? (
                             <Space direction="vertical" size={8}>
                                 <Space>
-                                    <Button type="primary" href={resumeUrl} target="_blank" rel="noreferrer">
+                                    <Button type="primary" loading={isHandlingCv} onClick={handlePreviewCv}>
                                         Xem CV
                                     </Button>
-                                    <Button href={resumeUrl} target="_blank" rel="noreferrer" download>
+                                    <Button loading={isHandlingCv} onClick={handleDownloadCv}>
                                         Tải CV
                                     </Button>
                                 </Space>
                                 <Typography.Text type="secondary" copyable>
-                                    {resumeUrl}
+                                    {previewUrl}
                                 </Typography.Text>
                             </Space>
                         ) : (
