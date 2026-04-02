@@ -1,6 +1,6 @@
 import { callUpdateResumeStatus } from "@/config/api";
 import { IResume } from "@/types/backend";
-import { Badge, Button, Descriptions, Drawer, Form, Select, message, notification } from "antd";
+import { Button, Descriptions, Drawer, Form, Select, Space, Typography, message, notification } from "antd";
 import dayjs from 'dayjs';
 import { useState, useEffect } from 'react';
 const { Option } = Select;
@@ -16,6 +16,19 @@ const ViewDetailResume = (props: IProps) => {
     const [isSubmit, setIsSubmit] = useState<boolean>(false);
     const { onClose, open, dataInit, setDataInit, reloadTable } = props;
     const [form] = Form.useForm();
+
+    const buildResumeUrl = (rawUrl?: string) => {
+        if (!rawUrl) return "";
+
+        const trimmed = rawUrl.trim();
+        if (/^https?:\/\//i.test(trimmed)) return trimmed;
+        if (trimmed.startsWith('/storage/')) {
+            return `${import.meta.env.VITE_BACKEND_URL}${trimmed}`;
+        }
+        return `${import.meta.env.VITE_BACKEND_URL}/storage/resume/${trimmed}`;
+    };
+
+    const resumeUrl = buildResumeUrl(dataInit?.url);
 
     const handleChangeStatus = async () => {
         setIsSubmit(true);
@@ -94,6 +107,26 @@ const ViewDetailResume = (props: IProps) => {
                     </Descriptions.Item>
                     <Descriptions.Item label="Ngày tạo">{dataInit && dataInit.createdAt ? dayjs(dataInit.createdAt).format('DD-MM-YYYY HH:mm:ss') : ""}</Descriptions.Item>
                     <Descriptions.Item label="Ngày sửa">{dataInit && dataInit.updatedAt ? dayjs(dataInit.updatedAt).format('DD-MM-YYYY HH:mm:ss') : ""}</Descriptions.Item>
+
+                    <Descriptions.Item label="CV" span={2}>
+                        {resumeUrl ? (
+                            <Space direction="vertical" size={8}>
+                                <Space>
+                                    <Button type="primary" href={resumeUrl} target="_blank" rel="noreferrer">
+                                        Xem CV
+                                    </Button>
+                                    <Button href={resumeUrl} target="_blank" rel="noreferrer" download>
+                                        Tải CV
+                                    </Button>
+                                </Space>
+                                <Typography.Text type="secondary" copyable>
+                                    {resumeUrl}
+                                </Typography.Text>
+                            </Space>
+                        ) : (
+                            <Typography.Text type="secondary">Chưa có file CV</Typography.Text>
+                        )}
+                    </Descriptions.Item>
 
                 </Descriptions>
             </Drawer>
