@@ -10,6 +10,7 @@ interface IUserUpsertPayload {
     gender: string;
     address: string;
     role?: string | { id: string | number };
+    company?: { id: string | number };
 }
 
 /**

@@ -40,6 +40,9 @@ const ViewDetailUser = (props: IProps) => {
                     <Descriptions.Item label="Vai trò" >
                         <Badge status="processing" text={renderRoleName(dataInit?.role)} />
                     </Descriptions.Item>
+                    <Descriptions.Item label="Thuộc công ty" >
+                        {dataInit?.company?.name ?? "Không có"}
+                    </Descriptions.Item>
                     <Descriptions.Item label="Địa chỉ" >{dataInit?.address}</Descriptions.Item>
 
                     <Descriptions.Item label="Ngày tạo">{dataInit && dataInit.createdAt ? dayjs(dataInit.createdAt).format('DD-MM-YYYY HH:mm:ss') : ""}</Descriptions.Item>

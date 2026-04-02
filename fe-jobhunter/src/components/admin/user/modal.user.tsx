@@ -1,7 +1,7 @@
 import { ModalForm, ProFormDigit, ProFormSelect, ProFormText } from "@ant-design/pro-components";
 import { Col, Form, Row, message, notification } from "antd";
 import { isMobile } from 'react-device-detect';
-import { callCreateUser, callFetchRole, callUpdateUser } from "@/config/api";
+import { callCreateUser, callFetchCompany, callFetchRole, callUpdateUser } from "@/config/api";
 import { IRole, IUser } from "@/types/backend";
 import { useEffect, useState } from "react";
 
@@ -23,6 +23,7 @@ const ModalUser = (props: IProps) => {
     const { openModal, setOpenModal, reloadTable, dataInit, setDataInit } = props;
     const [form] = Form.useForm();
     const [roleOptions, setRoleOptions] = useState<{ label: string; value: string }[]>([]);
+    const [companyOptions, setCompanyOptions] = useState<{ label: string; value: string }[]>([]);
 
     const normalizeRoleValue = (role: unknown): string | undefined => {
         if (!role) return undefined;
@@ -45,15 +46,26 @@ const ModalUser = (props: IProps) => {
         return undefined;
     };
 
+    const normalizeCompanyValue = (company: unknown): string | undefined => {
+        if (!company) return undefined;
+
+        if (typeof company === 'object' && company !== null && 'id' in company) {
+            return String((company as { id?: string | number }).id ?? '');
+        }
+
+        return undefined;
+    };
+
     useEffect(() => {
         //case update, initial data
         if (dataInit?.id) {
             form.setFieldsValue({
                 ...dataInit,
-                role: normalizeRoleValue(dataInit.role)
+                role: normalizeRoleValue(dataInit.role),
+                company: normalizeCompanyValue(dataInit.company)
             })
         }
-    }, [dataInit, roleOptions])
+    }, [dataInit, roleOptions, companyOptions])
 
     useEffect(() => {
         const initRoles = async () => {
@@ -67,15 +79,29 @@ const ModalUser = (props: IProps) => {
             );
         };
 
+        const initCompanies = async () => {
+            const res = await callFetchCompany('page=1&size=100');
+            const companies = res?.data?.result ?? [];
+            setCompanyOptions(
+                companies.map((company) => ({
+                    label: company.name ?? '',
+                    value: String(company.id),
+                }))
+            );
+        };
+
         if (openModal) {
             initRoles();
+            initCompanies();
         }
     }, [openModal]);
 
     const submitUser = async (valuesForm: any) => {
-        const { name, email, password, address, age, gender, role } = valuesForm;
+        const { name, email, password, address, age, gender, role, company } = valuesForm;
         const roleId = Number.isNaN(Number(role)) ? role : Number(role);
+        const companyId = Number.isNaN(Number(company)) ? company : Number(company);
         const rolePayload = { id: roleId };
+        const companyPayload = { id: companyId };
 
         if (dataInit?.id) {
             //update
@@ -88,6 +114,7 @@ const ModalUser = (props: IProps) => {
                 gender,
                 address,
                 role: rolePayload,
+                company: companyPayload,
             }
 
             const res = await callUpdateUser(user);
@@ -111,6 +138,7 @@ const ModalUser = (props: IProps) => {
                 gender,
                 address,
                 role: rolePayload,
+                company: companyPayload,
             }
             const res = await callCreateUser(user);
             if (res.data) {
@@ -214,7 +242,18 @@ const ModalUser = (props: IProps) => {
                         />
                     </Col>
 
-                    <Col lg={24} md={24} sm={24} xs={24}>
+                    <Col lg={12} md={12} sm={24} xs={24}>
+                        <ProFormSelect
+                            name="company"
+                            label="Thuộc Công Ty"
+                            placeholder="Chọn công ty"
+                            options={companyOptions}
+                            showSearch
+                            rules={[{ required: true, message: 'Vui lòng chọn công ty!' }]}
+                        />
+                    </Col>
+
+                    <Col lg={12} md={12} sm={24} xs={24}>
                         <ProFormText
                             label="Địa chỉ"
                             name="address"
