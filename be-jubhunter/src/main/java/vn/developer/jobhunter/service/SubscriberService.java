@@ -6,8 +6,12 @@ import java.util.HashMap;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +25,8 @@ import vn.developer.jobhunter.repository.SubscriberRepository;
 
 @Service
 public class SubscriberService {
+
+    private static final Logger log = LoggerFactory.getLogger(SubscriberService.class);
 
     private final SubscriberRepository subscriberRepository;
     private final SkillRepository skillRepository;
@@ -183,6 +189,15 @@ public class SubscriberService {
         summary.put("failedCount", failedRecipients.size());
         summary.put("failedRecipients", failedRecipients);
         return summary;
+    }
+
+    public void notifySubscribersByJobDelayed(Job job, long delaySeconds) {
+        CompletableFuture.runAsync(
+                () -> {
+                    Map<String, Object> summary = this.notifySubscribersByJob(job);
+                    log.info("Delayed notify for jobId={} after {}s summary={}", job.getId(), delaySeconds, summary);
+                },
+                CompletableFuture.delayedExecutor(delaySeconds, TimeUnit.SECONDS));
     }
 
     public Subscriber findByEmail(String email) {

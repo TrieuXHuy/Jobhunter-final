@@ -67,8 +67,8 @@ public class JobService {
 
         // create job
         Job currentJob = this.jobRepository.save(j);
-        Map<String, Object> notifySummary = this.subscriberService.notifySubscribersByJob(currentJob);
-        log.info("Immediate subscriber notify for jobId={} summary={}", currentJob.getId(), notifySummary);
+        this.subscriberService.notifySubscribersByJobDelayed(currentJob, 5);
+        log.info("Scheduled delayed subscriber notify for jobId={} delaySeconds={}", currentJob.getId(), 5);
 
         // convert response
         ResCreateJobDTO dto = new ResCreateJobDTO();
