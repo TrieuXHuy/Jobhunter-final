@@ -37,6 +37,16 @@ const ClientJobDetailPage = (props: any) => {
         init();
     }, [id]);
 
+    const getRelativeUpdatedTime = (job: IJob | null) => {
+        const sourceTime = job?.updatedAt || job?.createdAt;
+        if (!sourceTime) return "";
+
+        const parsedTime = dayjs(sourceTime);
+        if (!parsedTime.isValid()) return "";
+
+        return parsedTime.locale("en").fromNow();
+    };
+
     return (
         <div className={`${styles["container"]} ${styles["detail-job-section"]}`}>
             {isLoading ?
@@ -73,7 +83,7 @@ const ClientJobDetailPage = (props: any) => {
                                     <EnvironmentOutlined style={{ color: '#58aaab' }} />&nbsp;{getLocationName(jobDetail.location)}
                                 </div>
                                 <div>
-                                    <HistoryOutlined /> {jobDetail.updatedAt ? dayjs(jobDetail.updatedAt).locale("en").fromNow() : ""}
+                                    <HistoryOutlined /> {getRelativeUpdatedTime(jobDetail)}
                                 </div>
                                 <Divider />
                                 {parse(jobDetail.description)}

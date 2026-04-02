@@ -1,5 +1,5 @@
 import { callFetchJob } from '@/config/api';
-import { LOCATION_LIST, convertSlug, getLocationName } from '@/config/utils';
+import { convertSlug, getLocationName } from '@/config/utils';
 import { IJob } from '@/types/backend';
 import { EnvironmentOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { Card, Col, Empty, Pagination, Row, Spin } from 'antd';
@@ -68,6 +68,16 @@ const JobCard = (props: IProps) => {
         navigate(`/job/${slug}?id=${item.id}`)
     }
 
+    const getRelativeUpdatedTime = (item: IJob) => {
+        const sourceTime = item.updatedAt || item.createdAt;
+        if (!sourceTime) return "";
+
+        const parsedTime = dayjs(sourceTime);
+        if (!parsedTime.isValid()) return "";
+
+        return parsedTime.locale('en').fromNow();
+    }
+
     return (
         <div className={`${styles["card-job-section"]}`}>
             <div className={`${styles["job-content"]}`}>
@@ -83,7 +93,6 @@ const JobCard = (props: IProps) => {
                         </Col>
 
                         {displayJob?.map(item => {
-                            console.log(">>> check job: ", item, dayjs(item.updatedAt).fromNow())
                             return (
                                 <Col span={24} md={12} key={item.id}>
                                     <Card size="small" title={null} hoverable
@@ -100,7 +109,7 @@ const JobCard = (props: IProps) => {
                                                 <div className={styles["job-title"]}>{item.name}</div>
                                                 <div className={styles["job-location"]}><EnvironmentOutlined style={{ color: '#58aaab' }} />&nbsp;{getLocationName(item.location)}</div>
                                                 <div><ThunderboltOutlined style={{ color: 'orange' }} />&nbsp;{(item.salary + "")?.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} đ</div>
-                                                <div className={styles["job-updatedAt"]}>{dayjs(item.updatedAt).locale('en').fromNow()}</div>
+                                                <div className={styles["job-updatedAt"]}>{getRelativeUpdatedTime(item)}</div>
                                             </div>
                                         </div>
 
