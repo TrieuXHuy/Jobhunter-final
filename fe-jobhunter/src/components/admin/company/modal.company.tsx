@@ -37,6 +37,7 @@ const ModalCompany = (props: IProps) => {
 
     const [loadingUpload, setLoadingUpload] = useState<boolean>(false);
     const [dataLogo, setDataLogo] = useState<ICompanyLogo[]>([]);
+    const [logoFile, setLogoFile] = useState<File | null>(null);
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState('');
     const [previewTitle, setPreviewTitle] = useState('');
@@ -67,9 +68,27 @@ const ModalCompany = (props: IProps) => {
             return;
         }
 
+        let logoName = dataLogo[0].name;
+
+        // Upload only when user selects a new local file.
+        if (logoFile) {
+            setLoadingUpload(true);
+            const uploadRes = await callUploadSingleFile(logoFile, "company");
+            setLoadingUpload(false);
+
+            if (!uploadRes?.data?.fileName) {
+                notification.error({
+                    message: 'Có lỗi xảy ra',
+                    description: uploadRes?.message ?? 'Upload logo thất bại.'
+                });
+                return;
+            }
+            logoName = uploadRes.data.fileName;
+        }
+
         if (dataInit?.id) {
             //update
-            const res = await callUpdateCompany(dataInit.id, name, address, value, dataLogo[0].name);
+            const res = await callUpdateCompany(dataInit.id, name, address, value, logoName);
             if (res.data) {
                 message.success("Cập nhật company thành công");
                 handleReset();
@@ -82,7 +101,7 @@ const ModalCompany = (props: IProps) => {
             }
         } else {
             //create
-            const res = await callCreateCompany(name, address, value, dataLogo[0].name);
+            const res = await callCreateCompany(name, address, value, logoName);
             if (res.data) {
                 message.success("Thêm mới company thành công");
                 handleReset();
@@ -100,6 +119,9 @@ const ModalCompany = (props: IProps) => {
         form.resetFields();
         setValue("");
         setDataInit(null);
+        setLogoFile(null);
+        setDataLogo([]);
+        setLoadingUpload(false);
 
         //add animation when closing modal
         setAnimation('close')
@@ -110,6 +132,7 @@ const ModalCompany = (props: IProps) => {
 
     const handleRemoveFile = (file: any) => {
         setDataLogo([])
+        setLogoFile(null)
     }
 
     const handlePreview = async (file: any) => {
@@ -136,41 +159,32 @@ const ModalCompany = (props: IProps) => {
         const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
         if (!isJpgOrPng) {
             message.error('You can only upload JPG/PNG file!');
+            return Upload.LIST_IGNORE;
         }
         const isLt2M = file.size / 1024 / 1024 < 2;
         if (!isLt2M) {
             message.error('Image must smaller than 2MB!');
+            return Upload.LIST_IGNORE;
         }
-        return isJpgOrPng && isLt2M;
+
+        // Keep file in client state and upload only on form submit.
+        return false;
     };
 
     const handleChange = (info: any) => {
-        if (info.file.status === 'uploading') {
-            setLoadingUpload(true);
+        const selectedFile = info?.fileList?.[0];
+        if (!selectedFile) {
+            setDataLogo([]);
+            setLogoFile(null);
+            return;
         }
-        if (info.file.status === 'done') {
-            setLoadingUpload(false);
-        }
-        if (info.file.status === 'error') {
-            setLoadingUpload(false);
-            message.error(info?.file?.error?.event?.message ?? "Đã có lỗi xảy ra khi upload file.")
-        }
-    };
 
-    const handleUploadFileLogo = async ({ file, onSuccess, onError }: any) => {
-        const res = await callUploadSingleFile(file, "company");
-        if (res && res.data) {
+        if (selectedFile.originFileObj) {
             setDataLogo([{
-                name: res.data.fileName,
-                uid: uuidv4()
-            }])
-            if (onSuccess) onSuccess('ok')
-        } else {
-            if (onError) {
-                setDataLogo([])
-                const error = new Error(res.message);
-                onError({ event: error });
-            }
+                name: selectedFile.name,
+                uid: selectedFile.uid ?? uuidv4()
+            }]);
+            setLogoFile(selectedFile.originFileObj as File);
         }
     };
 
@@ -239,7 +253,6 @@ const ModalCompany = (props: IProps) => {
                                             className="avatar-uploader"
                                             maxCount={1}
                                             multiple={false}
-                                            customRequest={handleUploadFileLogo}
                                             beforeUpload={beforeUpload}
                                             onChange={handleChange}
                                             onRemove={(file) => handleRemoveFile(file)}
