@@ -82,8 +82,7 @@
     .desktopHeader {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 24px;
+        justify-content: flex-start;
         height: 68px;
     }
 
@@ -130,13 +129,14 @@
 
     .top-menu {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
         width: 100%;
-        gap: 24px;
+        gap: 16px;
 
         .mainNav {
             min-width: 340px;
+            margin-right: auto;
 
             :global(.ant-menu-item) {
                 font-size: 15px;

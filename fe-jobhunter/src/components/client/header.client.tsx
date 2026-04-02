@@ -105,10 +105,6 @@ const Header = (props: any) => {
                 <div className={styles["container"]}>
                     {!isMobile ?
                         <div className={styles['desktopHeader']}>
-                            <div className={styles['brand']} onClick={() => navigate('/')}>
-                                <span className={styles['brandIcon']}>it</span>
-                                <span className={styles['brandText']}>IT</span>
-                            </div>
                             <div className={styles['top-menu']}>
                                 <ConfigProvider
                                     theme={{
