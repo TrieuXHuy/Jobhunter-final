@@ -1,6 +1,17 @@
 import { IBackendRes, ICompany, IAccount, IUser, IModelPaginate, IGetAccount, IJob, IResume, ISkill, IPermission, IRole } from '@/types/backend';
 import axios from 'config/axios-customize';
 
+interface IUserUpsertPayload {
+    id?: string;
+    name: string;
+    email: string;
+    password?: string;
+    age: number;
+    gender: string;
+    address: string;
+    role?: string | { id: string | number };
+}
+
 /**
  * 
 Module Auth
@@ -128,11 +139,11 @@ export const callFetchAllSkill = (query: string) => {
  * 
 Module User
  */
-export const callCreateUser = (user: IUser) => {
+export const callCreateUser = (user: IUserUpsertPayload) => {
     return axios.post<IBackendRes<IUser>>('/api/v1/users', { ...user })
 }
 
-export const callUpdateUser = (user: IUser) => {
+export const callUpdateUser = (user: IUserUpsertPayload) => {
     return axios.put<IBackendRes<IUser>>(`/api/v1/users`, { ...user })
 }
 

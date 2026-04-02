@@ -44,6 +44,15 @@ const UserPage = () => {
         tableRef?.current?.reload();
     }
 
+    const renderRoleName = (role: unknown): string => {
+        if (!role) return "";
+        if (typeof role === 'string') return role;
+        if (typeof role === 'object' && role !== null && 'name' in role) {
+            return String((role as { name?: string }).name ?? "");
+        }
+        return "";
+    }
+
     const columns: ProColumns<IUser>[] = [
         {
             title: 'STT',
@@ -67,6 +76,12 @@ const UserPage = () => {
             title: 'Email',
             dataIndex: 'email',
             sorter: true,
+        },
+        {
+            title: 'Role',
+            dataIndex: 'role',
+            render: (_, record) => <>{renderRoleName(record.role)}</>,
+            hideInSearch: true,
         },
 
         {

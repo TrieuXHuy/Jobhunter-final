@@ -60,7 +60,10 @@ export interface IUser {
     age: number;
     gender: string;
     address: string;
-    role?: string;
+    role?: string | {
+        id: string | number;
+        name?: string;
+    };
     company?: {
         id: string;
         name: string;

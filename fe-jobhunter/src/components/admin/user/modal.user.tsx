@@ -1,9 +1,9 @@
 import { ModalForm, ProFormDigit, ProFormSelect, ProFormText } from "@ant-design/pro-components";
 import { Col, Form, Row, message, notification } from "antd";
 import { isMobile } from 'react-device-detect';
-import { callCreateUser, callUpdateUser } from "@/config/api";
-import { IUser } from "@/types/backend";
-import { useEffect } from "react";
+import { callCreateUser, callFetchRole, callUpdateUser } from "@/config/api";
+import { IRole, IUser } from "@/types/backend";
+import { useEffect, useState } from "react";
 
 interface IProps {
     openModal: boolean;
@@ -22,16 +22,61 @@ export interface ICompanySelect {
 const ModalUser = (props: IProps) => {
     const { openModal, setOpenModal, reloadTable, dataInit, setDataInit } = props;
     const [form] = Form.useForm();
+    const [roleOptions, setRoleOptions] = useState<{ label: string; value: string }[]>([]);
+
+    const normalizeRoleValue = (role: unknown): string | undefined => {
+        if (!role) return undefined;
+
+        if (typeof role === 'object' && role !== null && 'id' in role) {
+            return String((role as { id?: string | number }).id ?? '');
+        }
+
+        if (typeof role === 'string') {
+            const roleByName = roleOptions.find((item) => item.label === role);
+            return roleByName ? roleByName.value : role;
+        }
+
+        if (typeof role === 'object' && role !== null && 'name' in role) {
+            const roleName = String((role as { name?: string }).name ?? '');
+            const roleByName = roleOptions.find((item) => item.label === roleName);
+            return roleByName ? roleByName.value : roleName;
+        }
+
+        return undefined;
+    };
 
     useEffect(() => {
         //case update, initial data
         if (dataInit?.id) {
-            form.setFieldsValue(dataInit)
+            form.setFieldsValue({
+                ...dataInit,
+                role: normalizeRoleValue(dataInit.role)
+            })
         }
-    }, [dataInit])
+    }, [dataInit, roleOptions])
+
+    useEffect(() => {
+        const initRoles = async () => {
+            const res = await callFetchRole('page=1&size=100');
+            const roles = res?.data?.result ?? [];
+            setRoleOptions(
+                roles.map((role: IRole) => ({
+                    label: role.name,
+                    value: String(role.id),
+                }))
+            );
+        };
+
+        if (openModal) {
+            initRoles();
+        }
+    }, [openModal]);
 
     const submitUser = async (valuesForm: any) => {
-        const { name, email, password, address, age, gender } = valuesForm;
+        const { name, email, password, address, age, gender, role } = valuesForm;
+        const roleId = Number.isNaN(Number(role)) ? role : Number(role);
+        const rolePayload = { id: roleId };
+
         if (dataInit?.id) {
             //update
             const user = {
@@ -42,6 +87,7 @@ const ModalUser = (props: IProps) => {
                 age,
                 gender,
                 address,
+                role: rolePayload,
             }
 
             const res = await callUpdateUser(user);
@@ -63,7 +109,8 @@ const ModalUser = (props: IProps) => {
                 password,
                 age,
                 gender,
-                address
+                address,
+                role: rolePayload,
             }
             const res = await callCreateUser(user);
             if (res.data) {
@@ -154,6 +201,16 @@ const ModalUser = (props: IProps) => {
                             }}
                             placeholder="Chọn giới tính"
                             rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
+                        />
+                    </Col>
+
+                    <Col lg={6} md={6} sm={24} xs={24}>
+                        <ProFormSelect
+                            name="role"
+                            label="Vai trò"
+                            placeholder="Chọn vai trò"
+                            options={roleOptions}
+                            rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
                         />
                     </Col>
 

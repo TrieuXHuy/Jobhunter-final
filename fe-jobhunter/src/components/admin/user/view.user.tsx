@@ -11,6 +11,15 @@ interface IProps {
 const ViewDetailUser = (props: IProps) => {
     const { onClose, open, dataInit, setDataInit } = props;
 
+    const renderRoleName = (role: unknown): string => {
+        if (!role) return "UNKNOWN";
+        if (typeof role === 'string') return role;
+        if (typeof role === 'object' && role !== null && 'name' in role) {
+            return String((role as { name?: string }).name ?? "UNKNOWN");
+        }
+        return "UNKNOWN";
+    };
+
     return (
         <>
             <Drawer
@@ -29,7 +38,7 @@ const ViewDetailUser = (props: IProps) => {
                     <Descriptions.Item label="Tuổi">{dataInit?.age}</Descriptions.Item>
 
                     <Descriptions.Item label="Vai trò" >
-                        <Badge status="processing" text={dataInit?.role ?? "UNKNOWN"} />
+                        <Badge status="processing" text={renderRoleName(dataInit?.role)} />
                     </Descriptions.Item>
                     <Descriptions.Item label="Địa chỉ" >{dataInit?.address}</Descriptions.Item>
 
