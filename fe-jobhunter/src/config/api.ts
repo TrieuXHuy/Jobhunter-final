@@ -37,8 +37,32 @@ export const callLogout = () => {
  * Upload single file
  */
 export const callUploadSingleFile = (file: any, folderType: string) => {
+    const sanitizeFileName = (name: string) => {
+        const dotIndex = name.lastIndexOf('.');
+        const hasExtension = dotIndex > 0;
+        const baseName = hasExtension ? name.substring(0, dotIndex) : name;
+        const extension = hasExtension ? name.substring(dotIndex) : '';
+
+        const safeBaseName = baseName
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-zA-Z0-9-_]/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '');
+
+        return `${safeBaseName || 'file'}${extension}`;
+    };
+
+    const sanitizedFile =
+        file instanceof File
+            ? new File([file], sanitizeFileName(file.name), {
+                type: file.type,
+                lastModified: file.lastModified,
+            })
+            : file;
+
     const bodyFormData = new FormData();
-    bodyFormData.append('file', file);
+    bodyFormData.append('file', sanitizedFile);
     bodyFormData.append('folder', folderType);
 
     return axios<IBackendRes<{ fileName: string }>>({

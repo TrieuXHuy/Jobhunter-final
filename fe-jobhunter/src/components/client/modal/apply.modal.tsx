@@ -20,11 +20,13 @@ const ApplyModal = (props: IProps) => {
     const isAuthenticated = useAppSelector(state => state.account.isAuthenticated);
     const user = useAppSelector(state => state.account.user);
     const [urlCV, setUrlCV] = useState<string>("");
+    const [cvFile, setCvFile] = useState<File | null>(null);
+    const [uploadingCV, setUploadingCV] = useState<boolean>(false);
 
     const navigate = useNavigate();
 
     const handleOkButton = async () => {
-        if (!urlCV && isAuthenticated) {
+        if (!cvFile && !urlCV && isAuthenticated) {
             message.error("Vui lòng upload CV!");
             return;
         }
@@ -36,9 +38,30 @@ const ApplyModal = (props: IProps) => {
         else {
             //todo
             if (jobDetail) {
-                const res = await callCreateResume(urlCV, jobDetail?.id, user.email, user.id);
+                let uploadedCvUrl = urlCV;
+
+                if (cvFile) {
+                    setUploadingCV(true);
+                    const uploadRes = await callUploadSingleFile(cvFile, "resume");
+                    setUploadingCV(false);
+
+                    if (!uploadRes?.data?.fileName) {
+                        notification.error({
+                            message: 'Có lỗi xảy ra',
+                            description: uploadRes?.message ?? 'Upload CV thất bại.'
+                        });
+                        return;
+                    }
+
+                    uploadedCvUrl = uploadRes.data.fileName;
+                    setUrlCV(uploadedCvUrl);
+                }
+
+                const res = await callCreateResume(uploadedCvUrl, jobDetail?.id, user.email, user.id);
                 if (res.data) {
                     message.success("Rải CV thành công!");
+                    setCvFile(null);
+                    setUrlCV("");
                     setIsModalOpen(false);
                 } else {
                     notification.error({
@@ -54,29 +77,43 @@ const ApplyModal = (props: IProps) => {
         maxCount: 1,
         multiple: false,
         accept: "application/pdf,application/msword, .doc, .docx, .pdf",
-        async customRequest({ file, onSuccess, onError }: any) {
-            const res = await callUploadSingleFile(file, "resume");
-            if (res && res.data) {
-                setUrlCV(res.data.fileName);
-                if (onSuccess) onSuccess('ok')
-            } else {
-                if (onError) {
-                    setUrlCV("");
-                    const error = new Error(res.message);
-                    onError({ event: error });
-                }
+        beforeUpload(file) {
+            const allowedTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ];
+            const isAllowedType = allowedTypes.includes(file.type);
+            if (!isAllowedType) {
+                message.error('Chỉ hỗ trợ file .doc, .docx, .pdf');
+                return Upload.LIST_IGNORE;
             }
+
+            const isLt5M = file.size / 1024 / 1024 < 5;
+            if (!isLt5M) {
+                message.error('File phải nhỏ hơn 5MB');
+                return Upload.LIST_IGNORE;
+            }
+
+            return false;
         },
         onChange(info) {
-            if (info.file.status !== 'uploading') {
-                console.log(info.file, info.fileList);
+            const selectedFile = info?.fileList?.[0];
+            if (!selectedFile) {
+                setCvFile(null);
+                setUrlCV("");
+                return;
             }
-            if (info.file.status === 'done') {
-                message.success(`${info.file.name} file uploaded successfully`);
-            } else if (info.file.status === 'error') {
-                message.error(info?.file?.error?.event?.message ?? "Đã có lỗi xảy ra khi upload file.")
+
+            if (selectedFile.originFileObj) {
+                setCvFile(selectedFile.originFileObj as File);
+                setUrlCV("");
             }
         },
+        onRemove() {
+            setCvFile(null);
+            setUrlCV("");
+        }
     };
 
 
@@ -85,8 +122,13 @@ const ApplyModal = (props: IProps) => {
             <Modal title="Ứng Tuyển Job"
                 open={isModalOpen}
                 onOk={() => handleOkButton()}
-                onCancel={() => setIsModalOpen(false)}
+                onCancel={() => {
+                    setCvFile(null);
+                    setUrlCV("");
+                    setIsModalOpen(false)
+                }}
                 maskClosable={false}
+                confirmLoading={uploadingCV}
                 okText={isAuthenticated ? "Rải CV Nào " : "Đăng Nhập Nhanh"}
                 cancelButtonProps={
                     { style: { display: "none" } }
