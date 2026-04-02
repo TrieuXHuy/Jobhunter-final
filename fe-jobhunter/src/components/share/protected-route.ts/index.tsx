@@ -6,7 +6,7 @@ import Loading from "../loading";
 const RoleBaseRoute = (props: any) => {
     const isAdminRoute = window.location.pathname.startsWith('/admin');
     const user = useAppSelector(state => state.account.user);
-    const userRole = user.role;
+    const userRole = user.role?.name;
 
     if ((isAdminRoute && (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN')) ||
         (!isAdminRoute && (userRole === 'USER' || userRole === 'ADMIN' || userRole === 'SUPER_ADMIN'))

@@ -18,6 +18,29 @@ const instance = axiosClient.create({
 
 const mutex = new Mutex();
 const NO_RETRY_HEADER = 'x-no-retry';
+const PUBLIC_AUTH_PATHS = [
+    '/api/v1/auth/login',
+    '/api/v1/auth/register',
+    '/api/v1/auth/refresh'
+];
+
+const normalizePath = (url?: string): string => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        try {
+            return new URL(url).pathname;
+        } catch {
+            return url;
+        }
+    }
+    return url;
+};
+
+const isPublicAuthPath = (url?: string): boolean => {
+    const normalizedPath = normalizePath(url);
+    if (!normalizedPath) return false;
+    return PUBLIC_AUTH_PATHS.some(path => normalizedPath.startsWith(path));
+};
 
 const handleRefreshToken = async (): Promise<string | null> => {
     return await mutex.runExclusive(async () => {
@@ -28,8 +51,15 @@ const handleRefreshToken = async (): Promise<string | null> => {
 };
 
 instance.interceptors.request.use(function (config) {
-    if (typeof window !== "undefined" && window && window.localStorage && window.localStorage.getItem('access_token')) {
-        config.headers.Authorization = 'Bearer ' + window.localStorage.getItem('access_token');
+    const isPublicAuthRequest = isPublicAuthPath(config.url);
+    const accessToken = typeof window !== "undefined" ? window.localStorage.getItem('access_token') : null;
+
+    if (isPublicAuthRequest && config.headers) {
+        delete config.headers.Authorization;
+    }
+
+    if (accessToken && !isPublicAuthRequest) {
+        config.headers.Authorization = 'Bearer ' + accessToken;
     }
     if (!config.headers.Accept && config.headers["Content-Type"]) {
         config.headers.Accept = "application/json";
@@ -45,9 +75,13 @@ instance.interceptors.request.use(function (config) {
 instance.interceptors.response.use(
     (res) => res.data,
     async (error) => {
+        const requestUrl = error?.config?.url as string | undefined;
+        const hasAccessToken = typeof window !== "undefined" && !!window.localStorage.getItem('access_token');
+
         if (error.config && error.response
             && +error.response.status === 401
-            && error.config.url !== '/api/v1/auth/login'
+            && hasAccessToken
+            && !isPublicAuthPath(requestUrl)
             && !error.config.headers[NO_RETRY_HEADER]
         ) {
             const access_token = await handleRefreshToken();
@@ -61,8 +95,8 @@ instance.interceptors.response.use(
 
         if (
             error.config && error.response
-            && +error.response.status === 400
-            && error.config.url === '/api/v1/auth/refresh'
+            && (+error.response.status === 400 || +error.response.status === 401)
+            && requestUrl === '/api/v1/auth/refresh'
             && location.pathname.startsWith("/admin")
         ) {
             const message = error?.response?.data?.error ?? "Có lỗi xảy ra, vui lòng login.";
