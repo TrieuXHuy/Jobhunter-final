@@ -1,9 +1,12 @@
 package vn.developer.jobhunter.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,16 +25,21 @@ import vn.developer.jobhunter.repository.SkillRepository;
 @Service
 public class JobService {
 
+    private static final Logger log = LoggerFactory.getLogger(JobService.class);
+
     private final JobRepository jobRepository;
     private final SkillRepository skillRepository;
     private final CompanyRepository companyRepository;
+    private final SubscriberService subscriberService;
 
     public JobService(JobRepository jobRepository,
             SkillRepository skillRepository,
-            CompanyRepository companyRepository) {
+            CompanyRepository companyRepository,
+            SubscriberService subscriberService) {
         this.jobRepository = jobRepository;
         this.skillRepository = skillRepository;
         this.companyRepository = companyRepository;
+        this.subscriberService = subscriberService;
     }
 
     public Optional<Job> fetchJobById(long id) {
@@ -59,6 +67,8 @@ public class JobService {
 
         // create job
         Job currentJob = this.jobRepository.save(j);
+        Map<String, Object> notifySummary = this.subscriberService.notifySubscribersByJob(currentJob);
+        log.info("Immediate subscriber notify for jobId={} summary={}", currentJob.getId(), notifySummary);
 
         // convert response
         ResCreateJobDTO dto = new ResCreateJobDTO();
@@ -116,6 +126,8 @@ public class JobService {
 
         // update job
         Job currentJob = this.jobRepository.save(jobInDB);
+        Map<String, Object> notifySummary = this.subscriberService.notifySubscribersByJob(currentJob);
+        log.info("Immediate subscriber notify for updated jobId={} summary={}", currentJob.getId(), notifySummary);
 
         // convert response
         ResUpdateJobDTO dto = new ResUpdateJobDTO();

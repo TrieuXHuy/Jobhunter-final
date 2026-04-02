@@ -3,12 +3,14 @@ package vn.developer.jobhunter.service;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -21,10 +23,15 @@ import vn.developer.jobhunter.repository.JobRepository;
 @Service
 public class EmailService {
 
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+
     private final MailSender mailSender;
     private final JavaMailSender javaMailSender;
     private final SpringTemplateEngine templateEngine;
     private final JobRepository jobRepository;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     public EmailService(
             MailSender mailSender,
@@ -45,22 +52,25 @@ public class EmailService {
         this.mailSender.send(msg);
     }
 
-    public void sendEmailSync(String to, String subject, String content, boolean isMultipart, boolean isHtml) {
+    public boolean sendEmailSync(String to, String subject, String content, boolean isMultipart, boolean isHtml) {
         // Prepare message using a Spring helper
         MimeMessage mimeMessage = this.javaMailSender.createMimeMessage();
         try {
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, isMultipart, StandardCharsets.UTF_8.name());
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject(subject);
             message.setText(content, isHtml);
             this.javaMailSender.send(mimeMessage);
+            log.info("Email sent successfully to={} subject={}", to, subject);
+            return true;
         } catch (MailException | MessagingException e) {
-            System.out.println("ERROR SEND EMAIL: " + e);
+            log.error("Email send failed to={} from={} subject={} error={}", to, fromEmail, subject, e.getMessage(), e);
+            return false;
         }
     }
 
-    @Async
-    public void sendEmailFromTemplateSync(
+    public boolean sendEmailFromTemplateSync(
             String to,
             String subject,
             String templateName,
@@ -70,7 +80,7 @@ public class EmailService {
         context.setVariable("name", username);
         context.setVariable("jobs", value);
         String content = templateEngine.process(templateName, context);
-        this.sendEmailSync(to, subject, content, false, true);
+        return this.sendEmailSync(to, subject, content, false, true);
     }
 
 }

@@ -1,6 +1,10 @@
 package vn.developer.jobhunter.service;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -89,28 +93,96 @@ public class SubscriberService {
         return res;
     }
 
-    public void sendSubscribersEmailJobs() {
+    public Map<String, Object> sendSubscribersEmailJobs() {
+        Map<String, Object> summary = new HashMap<>();
+        List<String> skippedSubscribers = new ArrayList<>();
+        List<String> failedRecipients = new ArrayList<>();
+
+        int totalSubscribers = 0;
+        int subscribersWithSkills = 0;
+        int subscribersWithMatchingJobs = 0;
+        int sentCount = 0;
+
         List<Subscriber> listSubs = this.subscriberRepository.findAll();
+        totalSubscribers = listSubs != null ? listSubs.size() : 0;
+
         if (listSubs != null && listSubs.size() > 0) {
             for (Subscriber sub : listSubs) {
                 List<Skill> listSkills = sub.getSkills();
                 if (listSkills != null && listSkills.size() > 0) {
+                    subscribersWithSkills++;
                     List<Job> listJobs = this.jobRepository.findBySkillsIn(listSkills);
                     if (listJobs != null && listJobs.size() > 0) {
+                        subscribersWithMatchingJobs++;
 
                         List<ResEmailJob> arr = listJobs.stream().map(
                                 job -> this.convertJobToSendEmail(job)).collect(Collectors.toList());
 
-                        this.emailService.sendEmailFromTemplateSync(
+                        boolean sent = this.emailService.sendEmailFromTemplateSync(
                                 sub.getEmail(),
                                 "Cơ hội việc làm hot đang chờ đón bạn, khám phá ngay",
                                 "job",
                                 sub.getName(),
                                 arr);
+                        if (sent) {
+                            sentCount++;
+                        } else {
+                            failedRecipients.add(sub.getEmail());
+                        }
+                    } else {
+                        skippedSubscribers.add(sub.getEmail() + " (khong co jobs phu hop)");
                     }
+                } else {
+                    skippedSubscribers.add(sub.getEmail() + " (khong co skills)");
                 }
             }
         }
+
+        summary.put("totalSubscribers", totalSubscribers);
+        summary.put("subscribersWithSkills", subscribersWithSkills);
+        summary.put("subscribersWithMatchingJobs", subscribersWithMatchingJobs);
+        summary.put("sentCount", sentCount);
+        summary.put("failedCount", failedRecipients.size());
+        summary.put("failedRecipients", failedRecipients);
+        summary.put("skippedSubscribers", skippedSubscribers);
+        return summary;
+    }
+
+    public Map<String, Object> notifySubscribersByJob(Job job) {
+        Map<String, Object> summary = new HashMap<>();
+        List<String> failedRecipients = new ArrayList<>();
+
+        if (job == null || !job.isActive() || job.getSkills() == null || job.getSkills().isEmpty()) {
+            summary.put("matchedSubscribers", 0);
+            summary.put("sentCount", 0);
+            summary.put("failedCount", 0);
+            summary.put("failedRecipients", Collections.emptyList());
+            return summary;
+        }
+
+        List<Subscriber> matchedSubscribers = this.subscriberRepository.findDistinctBySkillsIn(job.getSkills());
+        int sentCount = 0;
+
+        List<ResEmailJob> arr = List.of(this.convertJobToSendEmail(job));
+        for (Subscriber sub : matchedSubscribers) {
+            boolean sent = this.emailService.sendEmailFromTemplateSync(
+                    sub.getEmail(),
+                    "Cơ hội việc làm mới phù hợp với kỹ năng của bạn",
+                    "job",
+                    sub.getName(),
+                    arr);
+            if (sent) {
+                sentCount++;
+            } else {
+                failedRecipients.add(sub.getEmail());
+            }
+        }
+
+        summary.put("matchedSubscribers", matchedSubscribers.size());
+        summary.put("sentCount", sentCount);
+        summary.put("failedCount", failedRecipients.size());
+        summary.put("failedRecipients", failedRecipients);
+        return summary;
     }
 
     public Subscriber findByEmail(String email) {
