@@ -21,6 +21,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { isMobile } from 'react-device-detect';
 import type { MenuProps } from 'antd';
 import { setLogoutAction } from '@/redux/slice/accountSlide';
+import { hasAnyAdminPermission, hasModulePermission } from '@/config/permission';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -36,6 +37,14 @@ const LayoutAdmin = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
+    const canViewCompany = hasModulePermission(user, 'COMPANY');
+    const canViewUser = hasModulePermission(user, 'USER');
+    const canViewJob = hasModulePermission(user, 'JOB');
+    const canViewResume = hasModulePermission(user, 'RESUME');
+    const canViewPermission = hasModulePermission(user, 'PERMISSION');
+    const canViewRole = hasModulePermission(user, 'ROLE');
+    const canViewDashboard = hasAnyAdminPermission(user);
+
     useEffect(() => {
         setActiveMenu(location.pathname)
     }, [location])
@@ -50,43 +59,43 @@ const LayoutAdmin = () => {
     }
 
     const items: MenuProps['items'] = [
-        {
+        canViewDashboard ? {
             label: <Link to='/admin'>Dashboard</Link>,
             key: '/admin',
             icon: <AppstoreOutlined />
-        },
-        {
+        } : null,
+        canViewCompany ? {
             label: <Link to='/admin/company'>Company</Link>,
             key: '/admin/company',
             icon: <BankOutlined />,
-        },
-        {
+        } : null,
+        canViewUser ? {
             label: <Link to='/admin/user'>User</Link>,
             key: '/admin/user',
             icon: <UserOutlined />
-        },
-        {
+        } : null,
+        canViewJob ? {
             label: <Link to='/admin/job'>Job</Link>,
             key: '/admin/job',
             icon: <ScheduleOutlined />
-        },
-        {
+        } : null,
+        canViewResume ? {
             label: <Link to='/admin/resume'>Resume</Link>,
             key: '/admin/resume',
             icon: <AliwangwangOutlined />
-        },
-        {
+        } : null,
+        canViewPermission ? {
             label: <Link to='/admin/permission'>Permission</Link>,
             key: '/admin/permission',
             icon: <ApiOutlined />
-        },
-        {
+        } : null,
+        canViewRole ? {
             label: <Link to='/admin/role'>Role</Link>,
             key: '/admin/role',
             icon: <ExceptionOutlined />
-        },
+        } : null,
 
-    ];
+    ].filter(Boolean) as MenuProps['items'];
 
     if (isMobile) {
         items.push({

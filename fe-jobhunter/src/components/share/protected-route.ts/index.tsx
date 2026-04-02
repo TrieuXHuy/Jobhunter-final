@@ -2,15 +2,13 @@ import { Navigate } from "react-router-dom";
 import { useAppSelector } from "@/redux/hooks";
 import NotPermitted from "./not-permitted";
 import Loading from "../loading";
+import { canAccessAdminPath } from "@/config/permission";
 
 const RoleBaseRoute = (props: any) => {
     const isAdminRoute = window.location.pathname.startsWith('/admin');
     const user = useAppSelector(state => state.account.user);
-    const userRole = user.role?.name;
 
-    if ((isAdminRoute && (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN')) ||
-        (!isAdminRoute && (userRole === 'USER' || userRole === 'ADMIN' || userRole === 'SUPER_ADMIN'))
-    ) {
+    if (!isAdminRoute || canAccessAdminPath(user, window.location.pathname)) {
         return (<>{props.children}</>)
     } else {
         return (<NotPermitted />)
