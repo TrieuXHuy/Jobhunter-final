@@ -9,6 +9,8 @@ import userReducer from './slice/userSlide';
 import jobReducer from './slice/jobSlide';
 import resumeReducer from './slice/resumeSlide';
 import skillReducer from './slice/skillSlide';
+import permissionReducer from './slice/permissionSlide';
+import roleReducer from './slice/roleSlide';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +20,8 @@ export const store = configureStore({
     job: jobReducer,
     resume: resumeReducer,
     skill: skillReducer,
+    permission: permissionReducer,
+    role: roleReducer,
   },
 });
 

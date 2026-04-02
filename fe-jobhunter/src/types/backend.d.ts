@@ -123,3 +123,31 @@ export interface IResume {
     createdAt?: string;
     updatedAt?: string;
 }
+
+export interface IPermission {
+    id?: string | number;
+    name: string;
+    apiPath: string;
+    method: string;
+    module: string;
+    createdBy?: string;
+    updatedBy?: string;
+    isDeleted?: boolean;
+    deletedAt?: boolean | null;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface IRole {
+    id?: string | number;
+    name: string;
+    description?: string;
+    active?: boolean;
+    permissions?: IPermission[];
+    createdBy?: string;
+    updatedBy?: string;
+    isDeleted?: boolean;
+    deletedAt?: boolean | null;
+    createdAt?: string;
+    updatedAt?: string;
+}
