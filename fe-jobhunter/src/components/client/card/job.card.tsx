@@ -3,9 +3,9 @@ import { convertSlug, getLocationName } from '@/config/utils';
 import { IJob } from '@/types/backend';
 import { EnvironmentOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { Card, Col, Empty, Pagination, Row, Spin } from 'antd';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { isMobile } from 'react-device-detect';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import styles from 'styles/client.module.scss';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -25,9 +25,39 @@ const JobCard = (props: IProps) => {
     const [current, setCurrent] = useState(1);
     const [pageSize, setPageSize] = useState(5);
     const [total, setTotal] = useState(0);
-    const [filter, setFilter] = useState("");
     const [sortQuery, setSortQuery] = useState("sort=updatedAt,desc");
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    const filter = useMemo(() => {
+        const parts: string[] = [];
+        const skillsParam = searchParams.get('skills');
+        const locationsParam = searchParams.get('locations');
+
+        const selectedSkills = skillsParam
+            ? skillsParam.split(',').map((item) => item.trim()).filter(Boolean)
+            : [];
+        const selectedLocations = locationsParam
+            ? locationsParam.split(',').map((item) => item.trim()).filter(Boolean)
+            : [];
+
+        const toQuoted = (value: string) => `'${value.replace(/'/g, "\\'")}'`;
+
+        if (selectedLocations.length > 0) {
+            parts.push(`location in [${selectedLocations.map(toQuoted).join(',')}]`);
+        }
+
+        if (selectedSkills.length > 0) {
+            parts.push(`skills.name in [${selectedSkills.map(toQuoted).join(',')}]`);
+        }
+
+        if (parts.length === 0) return "";
+        return `filter=${encodeURIComponent(parts.join(' and '))}`;
+    }, [searchParams]);
+
+    useEffect(() => {
+        setCurrent(1);
+    }, [filter]);
 
     useEffect(() => {
         fetchJob();
