@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,6 +24,8 @@ import vn.developer.jobhunter.domain.User;
 import vn.developer.jobhunter.domain.request.ReqLoginDTO;
 import vn.developer.jobhunter.domain.response.ResCreateUserDTO;
 import vn.developer.jobhunter.domain.response.ResLoginDTO;
+import vn.developer.jobhunter.domain.response.ResUpdateUserDTO;
+import vn.developer.jobhunter.domain.response.ResUserDTO;
 import vn.developer.jobhunter.service.UserService;
 import vn.developer.jobhunter.util.SecurityUtil;
 import vn.developer.jobhunter.util.annotation.ApiMessage;
@@ -120,6 +123,40 @@ public class AuthController {
         }
 
         return ResponseEntity.ok().body(userGetAccount);
+    }
+
+    @GetMapping("/auth/account/profile")
+    @ApiMessage("fetch account profile")
+    public ResponseEntity<ResUserDTO> getAccountProfile() throws IdInvalidException {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent()
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+
+        User currentUserDB = this.userService.handleGetUserByUsername(email);
+        if (currentUserDB == null) {
+            throw new IdInvalidException("Không tìm thấy thông tin người dùng hiện tại");
+        }
+
+        return ResponseEntity.ok(this.userService.convertToResUserDTO(currentUserDB));
+    }
+
+    @PutMapping("/auth/account")
+    @ApiMessage("update current account")
+    public ResponseEntity<ResUpdateUserDTO> updateAccount(@RequestBody User reqUser) throws IdInvalidException {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent()
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+
+        if (email.isEmpty()) {
+            throw new IdInvalidException("Access Token không hợp lệ");
+        }
+
+        User updatedUser = this.userService.handleUpdateCurrentUserProfile(email, reqUser);
+        if (updatedUser == null) {
+            throw new IdInvalidException("Không thể cập nhật thông tin người dùng");
+        }
+
+        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(updatedUser));
     }
 
     @GetMapping("/auth/refresh")

@@ -114,6 +114,20 @@ public class UserService {
         return this.userRepository.findByEmail(username);
     }
 
+    public User handleUpdateCurrentUserProfile(String email, User reqUser) {
+        User currentUser = this.handleGetUserByUsername(email);
+        if (currentUser == null) {
+            return null;
+        }
+
+        currentUser.setAddress(reqUser.getAddress());
+        currentUser.setGender(reqUser.getGender());
+        currentUser.setAge(reqUser.getAge());
+        currentUser.setName(reqUser.getName());
+
+        return this.userRepository.save(currentUser);
+    }
+
     public boolean isEmailExist(String email) {
         return this.userRepository.existsByEmail(email);
     }

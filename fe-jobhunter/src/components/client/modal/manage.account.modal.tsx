@@ -1,4 +1,4 @@
-import { callCreateSubscriber, callFetchAllSkill, callFetchResumeByUser, callFetchSubscriberSkills, callFetchUserById, callUpdateSubscriber, callUpdateUser } from "@/config/api";
+import { callCreateSubscriber, callFetchAllSkill, callFetchMyProfile, callFetchResumeByUser, callFetchSubscriberSkills, callUpdateMyProfile, callUpdateSubscriber } from "@/config/api";
 import { convertSlug } from "@/config/utils";
 import { useAppSelector } from "@/redux/hooks";
 import { IResumeByUser, ISkill, ISubscriber } from "@/types/backend";
@@ -36,8 +36,6 @@ const AccountManageModal = ({ open, onClose }: IProps) => {
 
     const [passwordSubmitting, setPasswordSubmitting] = useState(false);
     const [passwordForm] = Form.useForm();
-
-    const [userDetail, setUserDetail] = useState<any>(null);
 
     const fetchResumeByUser = async (page = resumePage, size = resumePageSize) => {
         setResumeLoading(true);
@@ -86,14 +84,11 @@ const AccountManageModal = ({ open, onClose }: IProps) => {
     };
 
     const fetchCurrentUserProfile = async () => {
-        if (!user?.id) return;
-
         setProfileLoading(true);
-        const res = await callFetchUserById(user.id);
+        const res = await callFetchMyProfile();
         setProfileLoading(false);
 
         if (res?.data) {
-            setUserDetail(res.data);
             profileForm.setFieldsValue({
                 name: res.data.name,
                 email: res.data.email,
@@ -166,24 +161,15 @@ const AccountManageModal = ({ open, onClose }: IProps) => {
 
     const handleUpdateProfile = async () => {
         const values = await profileForm.validateFields();
-        if (!user?.id) {
-            message.error("Không tìm thấy thông tin người dùng.");
-            return;
-        }
-
         const payload = {
-            id: String(user.id),
-            email: values.email,
             name: values.name,
             age: Number(values.age),
             gender: values.gender,
             address: values.address,
-            ...(userDetail?.role?.id ? { role: { id: userDetail.role.id } } : {}),
-            ...(userDetail?.company?.id ? { company: { id: userDetail.company.id } } : {}),
         };
 
         setProfileSubmitting(true);
-        const res = await callUpdateUser(payload as any);
+        const res = await callUpdateMyProfile(payload);
         setProfileSubmitting(false);
 
         if (res?.data) {
