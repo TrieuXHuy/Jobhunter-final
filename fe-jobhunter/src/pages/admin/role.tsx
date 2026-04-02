@@ -157,7 +157,7 @@ const RolePage = () => {
             }
         }
 
-        if (Object.keys(sortBy).length === 0) {
+        if (!sortBy) {
             temp = `${temp}&sort=createdAt,desc`;
         } else {
             temp = `${temp}&${sortBy}`;

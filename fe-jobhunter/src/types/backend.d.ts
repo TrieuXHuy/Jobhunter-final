@@ -133,7 +133,7 @@ export interface IPermission {
     createdBy?: string;
     updatedBy?: string;
     isDeleted?: boolean;
-    deletedAt?: boolean | null;
+    deletedAt?: string | null;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -143,11 +143,11 @@ export interface IRole {
     name: string;
     description?: string;
     active?: boolean;
-    permissions?: IPermission[];
+    permissions?: IPermission[] | { id: number }[];
     createdBy?: string;
     updatedBy?: string;
     isDeleted?: boolean;
-    deletedAt?: boolean | null;
+    deletedAt?: string | null;
     createdAt?: string;
     updatedAt?: string;
 }

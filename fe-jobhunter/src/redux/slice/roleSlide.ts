@@ -35,10 +35,7 @@ const initialState: IState = {
 export const roleSlide = createSlice({
     name: 'role',
     initialState,
-    reducers: {
-        setActiveMenu: (state, action) => {
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder.addCase(fetchRole.pending, (state, action) => {
             state.isFetching = true;
@@ -58,9 +55,5 @@ export const roleSlide = createSlice({
     },
 
 });
-
-export const {
-    setActiveMenu,
-} = roleSlide.actions;
 
 export default roleSlide.reducer;

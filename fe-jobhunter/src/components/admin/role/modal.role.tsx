@@ -1,7 +1,7 @@
 import { ModalForm, ProFormSwitch, ProFormText, ProFormTextArea } from "@ant-design/pro-components";
 import { callCreateRole, callFetchPermission, callFetchRoleById, callUpdateRole } from "@/config/api";
 import { IPermission, IRole } from "@/types/backend";
-import { Col, Divider, Form, Row, Spin, Checkbox, Empty, message, notification } from "antd";
+import { Col, Divider, Form, Row, Spin, Empty, Tree, message, notification } from "antd";
 import { isMobile } from 'react-device-detect';
 import { useEffect, useMemo, useState } from "react";
 import queryString from "query-string";
@@ -21,6 +21,7 @@ const ModalRole = (props: IProps) => {
     const [isLoadingPermission, setIsLoadingPermission] = useState<boolean>(false);
     const [isLoadingRoleDetail, setIsLoadingRoleDetail] = useState<boolean>(false);
     const [permissions, setPermissions] = useState<IPermission[]>([]);
+    const [selectedPermissionIds, setSelectedPermissionIds] = useState<string[]>([]);
 
     const groupedPermissions = useMemo(() => {
         const groups: Record<string, IPermission[]> = {};
@@ -32,14 +33,19 @@ const ModalRole = (props: IProps) => {
         return groups;
     }, [permissions]);
 
-    const permissionCheckboxOptions = useMemo(() => {
+    const permissionTreeData = useMemo(() => {
         return Object.keys(groupedPermissions).reduce((acc, moduleName) => {
-            acc[moduleName] = groupedPermissions[moduleName].map((p) => ({
-                label: `${p.name} (${p.method} ${p.apiPath})`,
-                value: String(p.id),
-            }));
+            acc.push({
+                key: `module-${moduleName}`,
+                title: moduleName,
+                selectable: false,
+                children: groupedPermissions[moduleName].map((p) => ({
+                    key: String(p.id),
+                    title: `${p.name} (${p.method} ${p.apiPath})`,
+                }))
+            })
             return acc;
-        }, {} as Record<string, { label: string; value: string }[]>);
+        }, [] as any[]);
     }, [groupedPermissions]);
 
     useEffect(() => {
@@ -69,8 +75,8 @@ const ModalRole = (props: IProps) => {
                         name: role.name,
                         description: role.description,
                         active: role.active,
-                        permissionIds: (role.permissions || []).map((p) => String(p.id)),
                     });
+                    setSelectedPermissionIds((role.permissions || []).map((p) => String(p.id)));
                 } else {
                     notification.error({
                         message: 'Có lỗi xảy ra',
@@ -79,7 +85,8 @@ const ModalRole = (props: IProps) => {
                 }
                 setIsLoadingRoleDetail(false);
             } else {
-                form.setFieldsValue({ active: true, permissionIds: [] });
+                form.setFieldsValue({ active: true });
+                setSelectedPermissionIds([]);
             }
         }
 
@@ -87,8 +94,12 @@ const ModalRole = (props: IProps) => {
     }, [openModal, dataInit?.id]);
 
     const submitRole = async (valuesForm: any) => {
-        const { name, description, active, permissionIds } = valuesForm;
-        const selectedPermissions = (permissionIds || []).map((id: string) => ({ id: Number(id) }));
+        const { name, description, active } = valuesForm;
+        if (!selectedPermissionIds.length) {
+            message.error('Vui lòng chọn ít nhất một permission');
+            return false;
+        }
+        const selectedPermissions = selectedPermissionIds.map((id) => ({ id: Number(id) }));
 
         if (dataInit?.id) {
             const res = await callUpdateRole({
@@ -131,6 +142,7 @@ const ModalRole = (props: IProps) => {
     const handleReset = async () => {
         form.resetFields();
         setDataInit(null);
+        setSelectedPermissionIds([]);
         setOpenModal(false);
     }
 
@@ -155,7 +167,7 @@ const ModalRole = (props: IProps) => {
                 preserve={false}
                 form={form}
                 onFinish={submitRole}
-                initialValues={dataInit?.id ? dataInit : { active: true, permissionIds: [] }}
+                initialValues={dataInit?.id ? dataInit : { active: true }}
             >
                 <Spin spinning={isLoading}>
                     <Row gutter={16}>
@@ -185,20 +197,27 @@ const ModalRole = (props: IProps) => {
 
                         <Col span={24}>
                             <Divider orientation="left" style={{ marginTop: 0 }}>Danh sách Permission</Divider>
-                            <Form.Item name="permissionIds" rules={[{ required: true, message: 'Vui lòng chọn ít nhất một permission' }]}> 
+                            <Form.Item>
                                 <div>
-                                    {Object.keys(permissionCheckboxOptions).length === 0 ? (
+                                    {permissionTreeData.length === 0 ? (
                                         <Empty description="Chưa có permission" />
                                     ) : (
-                                        Object.keys(permissionCheckboxOptions).map((moduleName) => (
-                                            <div key={moduleName} style={{ marginBottom: 16 }}>
-                                                <div style={{ fontWeight: 600, marginBottom: 8 }}>{moduleName}</div>
-                                                <Checkbox.Group
-                                                    options={permissionCheckboxOptions[moduleName]}
-                                                    style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-                                                />
-                                            </div>
-                                        ))
+                                        <Tree
+                                            checkable
+                                            defaultExpandAll
+                                            checkedKeys={selectedPermissionIds}
+                                            treeData={permissionTreeData}
+                                            onCheck={(checkedKeysValue) => {
+                                                const keys = Array.isArray(checkedKeysValue)
+                                                    ? checkedKeysValue
+                                                    : checkedKeysValue.checked;
+                                                setSelectedPermissionIds(
+                                                    keys
+                                                        .map((x) => String(x))
+                                                        .filter((x) => !x.startsWith('module-'))
+                                                );
+                                            }}
+                                        />
                                     )}
                                 </div>
                             </Form.Item>

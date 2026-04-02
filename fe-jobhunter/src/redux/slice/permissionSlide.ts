@@ -35,10 +35,7 @@ const initialState: IState = {
 export const permissionSlide = createSlice({
     name: 'permission',
     initialState,
-    reducers: {
-        setActiveMenu: (state, action) => {
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder.addCase(fetchPermission.pending, (state, action) => {
             state.isFetching = true;
@@ -58,9 +55,5 @@ export const permissionSlide = createSlice({
     },
 
 });
-
-export const {
-    setActiveMenu,
-} = permissionSlide.actions;
 
 export default permissionSlide.reducer;
