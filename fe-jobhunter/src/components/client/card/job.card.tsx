@@ -29,7 +29,7 @@ const JobCard = (props: IProps) => {
     const [isFavoriteLoading, setIsFavoriteLoading] = useState<boolean>(false);
 
     const [current, setCurrent] = useState(1);
-    const [pageSize, setPageSize] = useState(showPagination ? 8 : 5);
+    const [pageSize, setPageSize] = useState(6);
     const [total, setTotal] = useState(0);
     const sortQuery = "sort=updatedAt,desc";
     const navigate = useNavigate();
