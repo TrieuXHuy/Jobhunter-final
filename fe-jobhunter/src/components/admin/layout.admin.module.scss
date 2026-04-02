@@ -1,0 +1,112 @@
+.layoutAdmin {
+  min-height: 100vh;
+  background: #f3f6fb;
+}
+
+.adminSider {
+  border-right: 1px solid #e5eaf3;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
+
+  :global(.ant-layout-sider-children) {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.brandBlock {
+  height: 60px;
+  margin: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  background: linear-gradient(120deg, #0f172a, #1e293b);
+}
+
+.brandIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #e2e8f0;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandText {
+  color: #f8fafc;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  font-size: 13px;
+}
+
+.adminMenu {
+  border-inline-end: none !important;
+  padding: 6px;
+
+  :global(.ant-menu-item) {
+    border-radius: 10px;
+    margin-inline: 0;
+    margin-block: 4px;
+    height: 42px;
+    line-height: 42px;
+  }
+
+  :global(.ant-menu-item-selected) {
+    background: #e8f0ff;
+    color: #1d4ed8;
+    font-weight: 600;
+  }
+}
+
+.adminHeader {
+  height: 64px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e8edf6;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+}
+
+.menuToggleBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: #334155;
+
+  &:hover {
+    background: #eef2ff !important;
+    color: #1d4ed8 !important;
+  }
+}
+
+.adminProfile {
+  cursor: pointer;
+  gap: 10px !important;
+}
+
+.adminProfileName {
+  color: #334155;
+  font-weight: 500;
+}
+
+.adminAvatar {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.adminContent {
+  padding: 16px;
+}
+
+.adminContentInner {
+  background: #ffffff;
+  border: 1px solid #e5eaf3;
+  border-radius: 14px;
+  padding: 16px;
+  min-height: calc(100vh - 112px);
+}
