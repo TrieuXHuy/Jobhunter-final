@@ -189,10 +189,10 @@ const ViewUpsertJob = (props: any) => {
                     separator=">"
                     items={[
                         {
-                            title: <Link to="/admin/job">Manage Job</Link>,
+                            title: <Link to="/admin/job">Quản lý việc làm</Link>,
                         },
                         {
-                            title: 'Upsert Job',
+                            title: 'Tạo/Cập nhật việc làm',
                         },
                     ]}
                 />
@@ -207,7 +207,7 @@ const ViewUpsertJob = (props: any) => {
                             {
                                 searchConfig: {
                                     resetText: "Hủy",
-                                    submitText: <>{dataUpdate?.id ? "Cập nhật Job" : "Tạo mới Job"}</>
+                                    submitText: <>{dataUpdate?.id ? "Cập nhật việc làm" : "Tạo mới việc làm"}</>
                                 },
                                 onReset: () => navigate('/admin/job'),
                                 render: (_: any, dom: any) => <FooterToolbar>{dom}</FooterToolbar>,
@@ -220,12 +220,12 @@ const ViewUpsertJob = (props: any) => {
                         <Row gutter={[20, 20]}>
                             <Col span={24} md={12}>
                                 <ProFormText
-                                    label="Tên Job"
+                                    label="Tên việc làm"
                                     name="name"
                                     rules={[
                                         { required: true, message: 'Vui lòng không bỏ trống' },
                                     ]}
-                                    placeholder="Nhập tên job"
+                                    placeholder="Nhập tên việc làm"
                                 />
                             </Col>
                             <Col span={24} md={6}>
@@ -233,7 +233,7 @@ const ViewUpsertJob = (props: any) => {
                                     name="skills"
                                     label="Kỹ năng yêu cầu"
                                     options={skills}
-                                    placeholder="Please select a skill"
+                                    placeholder="Vui lòng chọn kỹ năng"
                                     rules={[{ required: true, message: 'Vui lòng chọn kỹ năng!' }]}
                                     allowClear
                                     mode="multiple"
@@ -248,7 +248,7 @@ const ViewUpsertJob = (props: any) => {
                                     name="location"
                                     label="Địa điểm"
                                     options={LOCATION_LIST.filter(item => item.value !== 'ALL')}
-                                    placeholder="Please select a location"
+                                    placeholder="Vui lòng chọn địa điểm"
                                     rules={[{ required: true, message: 'Vui lòng chọn địa điểm!' }]}
                                 />
                             </Col>
@@ -284,7 +284,7 @@ const ViewUpsertJob = (props: any) => {
                                         MIDDLE: 'MIDDLE',
                                         SENIOR: 'SENIOR',
                                     }}
-                                    placeholder="Please select a level"
+                                    placeholder="Vui lòng chọn trình độ"
                                     rules={[{ required: true, message: 'Vui lòng chọn level!' }]}
                                 />
                             </Col>
@@ -294,7 +294,7 @@ const ViewUpsertJob = (props: any) => {
                                     <ProForm.Item
                                         name="company"
                                         label="Thuộc Công Ty"
-                                        rules={[{ required: true, message: 'Vui lòng chọn company!' }]}
+                                        rules={[{ required: true, message: 'Vui lòng chọn công ty!' }]}
                                     >
                                         <DebounceSelect
                                             allowClear

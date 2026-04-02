@@ -60,37 +60,37 @@ const LayoutAdmin = () => {
 
     const items: NonNullable<MenuProps['items']> = [
         canViewDashboard ? {
-            label: <Link to='/admin'>Dashboard</Link>,
+            label: <Link to='/admin'>Bảng điều khiển</Link>,
             key: '/admin',
             icon: <AppstoreOutlined />
         } : null,
         canViewCompany ? {
-            label: <Link to='/admin/company'>Company</Link>,
+            label: <Link to='/admin/company'>Công ty</Link>,
             key: '/admin/company',
             icon: <BankOutlined />,
         } : null,
         canViewUser ? {
-            label: <Link to='/admin/user'>User</Link>,
+            label: <Link to='/admin/user'>Người dùng</Link>,
             key: '/admin/user',
             icon: <UserOutlined />
         } : null,
         canViewJob ? {
-            label: <Link to='/admin/job'>Job</Link>,
+            label: <Link to='/admin/job'>Việc làm</Link>,
             key: '/admin/job',
             icon: <ScheduleOutlined />
         } : null,
         canViewResume ? {
-            label: <Link to='/admin/resume'>Resume</Link>,
+            label: <Link to='/admin/resume'>Hồ sơ ứng tuyển</Link>,
             key: '/admin/resume',
             icon: <AliwangwangOutlined />
         } : null,
         canViewPermission ? {
-            label: <Link to='/admin/permission'>Permission</Link>,
+            label: <Link to='/admin/permission'>Quyền</Link>,
             key: '/admin/permission',
             icon: <ApiOutlined />
         } : null,
         canViewRole ? {
-            label: <Link to='/admin/role'>Role</Link>,
+            label: <Link to='/admin/role'>Vai trò</Link>,
             key: '/admin/role',
             icon: <ExceptionOutlined />
         } : null,
@@ -140,7 +140,7 @@ const LayoutAdmin = () => {
                             <div className={styles.brandIconWrap}>
                                 <SettingOutlined />
                             </div>
-                            {!collapsed && <span className={styles.brandText}>ADMIN PANEL</span>}
+                            {!collapsed && <span className={styles.brandText}>TRANG QUẢN TRỊ</span>}
                         </div>
                         <Menu
                             selectedKeys={[activeMenu]}

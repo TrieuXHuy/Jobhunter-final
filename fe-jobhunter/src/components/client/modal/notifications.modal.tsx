@@ -42,7 +42,7 @@ const NotificationsModal = ({ open, onClose, notifications, loading = false }: I
                             title={
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                     <Typography.Text strong>
-                                        CV cho job {item?.job?.name ?? 'N/A'}
+                                        CV cho vị trí {item?.job?.name ?? 'Chưa cập nhật'}
                                     </Typography.Text>
                                     <Tag color={getStatusColor(item.status)}>{item.status}</Tag>
                                 </div>
@@ -50,7 +50,7 @@ const NotificationsModal = ({ open, onClose, notifications, loading = false }: I
                             description={
                                 <div>
                                     <Typography.Text type="secondary">
-                                        Công ty: {item.companyName || 'N/A'}
+                                        Công ty: {item.companyName || 'Chưa cập nhật'}
                                     </Typography.Text>
                                     <br />
                                     <Typography.Text type="secondary">
