@@ -6,7 +6,6 @@ import { DeleteOutlined, EditOutlined, PlusOutlined, EyeOutlined } from "@ant-de
 import { ActionType, ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Space, message, notification } from "antd";
 import { useState, useRef } from 'react';
-import dayjs from 'dayjs';
 import { callDeleteUser } from "@/config/api";
 import queryString from 'query-string';
 import ModalUser from "@/components/admin/user/modal.user";
@@ -83,29 +82,14 @@ const UserPage = () => {
             render: (_, record) => <>{renderRoleName(record.role)}</>,
             hideInSearch: true,
         },
-
         {
-            title: 'Ngày tạo',
-            dataIndex: 'createdAt',
-            width: 200,
-            sorter: true,
-            render: (text, record, index, action) => {
-                return (
-                    <>{record.createdAt ? dayjs(record.createdAt).format('DD-MM-YYYY HH:mm:ss') : ""}</>
-                )
-            },
+            title: 'Công ty',
+            dataIndex: ['company', 'name'],
             hideInSearch: true,
         },
         {
-            title: 'Ngày cập nhật',
-            dataIndex: 'updatedAt',
-            width: 200,
-            sorter: true,
-            render: (text, record, index, action) => {
-                return (
-                    <>{record.updatedAt ? dayjs(record.updatedAt).format('DD-MM-YYYY HH:mm:ss') : ""}</>
-                )
-            },
+            title: 'Tuổi',
+            dataIndex: 'age',
             hideInSearch: true,
         },
         {
