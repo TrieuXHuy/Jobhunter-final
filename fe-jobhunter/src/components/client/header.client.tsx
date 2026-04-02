@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { CodeOutlined, LogoutOutlined, MenuFoldOutlined, RiseOutlined, TwitterOutlined } from '@ant-design/icons';
+import { LogoutOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import { Avatar, Drawer, Dropdown, MenuProps, Space, message } from 'antd';
 import { Menu, ConfigProvider } from 'antd';
 import styles from '@/styles/client.module.scss';
 import { isMobile } from 'react-device-detect';
-import { FaReact } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -27,6 +26,21 @@ const Header = (props: any) => {
     const location = useLocation();
 
     useEffect(() => {
+        if (location.pathname === '/' || location.pathname.startsWith('/auth')) {
+            setCurrent('/');
+            return;
+        }
+
+        if (location.pathname.startsWith('/company')) {
+            setCurrent('/company');
+            return;
+        }
+
+        if (location.pathname.startsWith('/job')) {
+            setCurrent('/job');
+            return;
+        }
+
         setCurrent(location.pathname);
     }, [location])
 
@@ -34,17 +48,14 @@ const Header = (props: any) => {
         {
             label: <Link to={'/'}>Trang Chủ</Link>,
             key: '/',
-            icon: <TwitterOutlined />,
         },
         {
-            label: <Link to={'/job'}>Việc Làm IT</Link>,
-            key: '/job',
-            icon: <CodeOutlined />,
-        },
-        {
-            label: <Link to={'/company'}>Top Công ty IT</Link>,
+            label: <Link to={'/company'}>Top Công ty</Link>,
             key: '/company',
-            icon: <RiseOutlined />,
+        },
+        {
+            label: <Link to={'/job'}>Việc Làm</Link>,
+            key: '/job',
         }
     ];
 
@@ -93,40 +104,47 @@ const Header = (props: any) => {
             <div className={styles["header-section"]}>
                 <div className={styles["container"]}>
                     {!isMobile ?
-                        <div style={{ display: "flex", gap: 30 }}>
-                            <div className={styles['brand']} >
-                                <FaReact onClick={() => navigate('/')} title='Hỏi Dân IT' />
+                        <div className={styles['desktopHeader']}>
+                            <div className={styles['brand']} onClick={() => navigate('/')}>
+                                <span className={styles['brandIcon']}>it</span>
+                                <span className={styles['brandText']}>IT</span>
                             </div>
                             <div className={styles['top-menu']}>
                                 <ConfigProvider
                                     theme={{
                                         token: {
-                                            colorPrimary: '#fff',
-                                            colorBgContainer: '#222831',
-                                            colorText: '#a7a7a7',
+                                            colorPrimary: '#ffffff',
+                                            colorBgContainer: 'transparent',
+                                            colorText: '#d4d4d8',
                                         },
                                     }}
                                 >
 
                                     <Menu
-                                        // onClick={onClick}
                                         selectedKeys={[current]}
                                         mode="horizontal"
                                         items={items}
+                                        className={styles['mainNav']}
                                     />
                                 </ConfigProvider>
-                                <div className={styles['extra']}>
+                                <div className={styles['extraActions']}>
+                                    <button className={styles['headerGhostBtn']} type="button">Tuyển dụng vị trí cao cấp</button>
+                                    <button className={styles['headerGhostBtn']} type="button">Dành cho Nhà Tuyển Dụng</button>
+
                                     {isAuthenticated === false ?
-                                        <Link to={'/login'}>Đăng Nhập</Link>
+                                        <div className={styles['authLinks']}>
+                                            <Link to={'/login'}>Đăng Nhập</Link>
+                                            <span className={styles['langSwitch']}>EN | VI</span>
+                                        </div>
                                         :
                                         <Dropdown menu={{ items: itemsDropdown }} trigger={['click']}>
-                                            <Space style={{ cursor: "pointer" }}>
-                                                <span>Welcome {user?.name}</span>
-                                                <Avatar> {user?.name?.substring(0, 2)?.toUpperCase()} </Avatar>
+                                            <Space className={styles['userDropdown']}>
+                                                <Avatar style={{ backgroundColor: '#e11d48', color: '#ffffff' }}>
+                                                    {user?.name?.substring(0, 2)?.toUpperCase()}
+                                                </Avatar>
                                             </Space>
                                         </Dropdown>
                                     }
-
                                 </div>
 
                             </div>

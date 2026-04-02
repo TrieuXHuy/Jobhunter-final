@@ -1,7 +1,8 @@
-import { callFetchCompany } from '@/config/api';
+import { callFetchCompany, callFetchJob } from '@/config/api';
 import { convertSlug } from '@/config/utils';
 import { ICompany } from '@/types/backend';
-import { Card, Col, Divider, Empty, Pagination, Row, Spin } from 'antd';
+import { Card, Col, Empty, Pagination, Row, Spin, Tag, Typography } from 'antd';
+import { EnvironmentOutlined, RightOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { isMobile } from 'react-device-detect';
 import { Link, useNavigate } from 'react-router-dom';
@@ -9,6 +10,11 @@ import styles from 'styles/client.module.scss';
 
 interface IProps {
     showPagination?: boolean;
+}
+
+interface ICompanyInsight {
+    skills: string[];
+    totalJobs: number;
 }
 
 const CompanyCard = (props: IProps) => {
@@ -22,6 +28,7 @@ const CompanyCard = (props: IProps) => {
     const [total, setTotal] = useState(0);
     const [filter, setFilter] = useState("");
     const [sortQuery, setSortQuery] = useState("sort=updatedAt,desc");
+    const [companyInsights, setCompanyInsights] = useState<Record<string, ICompanyInsight>>({});
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -64,6 +71,49 @@ const CompanyCard = (props: IProps) => {
         }
     }
 
+    const toPlainText = (value?: string) => {
+        if (!value) return '';
+        return value
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
+
+    useEffect(() => {
+        const fetchCompanyInsights = async () => {
+            if (!displayCompany || displayCompany.length === 0) return;
+
+            const insightEntries = await Promise.all(
+                displayCompany.map(async (company) => {
+                    const companyId = company.id;
+                    if (!companyId) {
+                        return [String(Math.random()), { skills: [], totalJobs: 0 }] as const;
+                    }
+
+                    const filterExpression = encodeURIComponent(`company.id = ${companyId} and active = true`);
+                    const res = await callFetchJob(`page=1&size=20&sort=updatedAt,desc&filter=${filterExpression}`);
+
+                    const jobs = res?.data?.result || [];
+                    const totalJobs = Number(res?.data?.meta?.total || 0);
+                    const uniqueSkills = Array.from(
+                        new Set(
+                            jobs
+                                .flatMap((job) => (job.skills || []).map((skill) => skill.name || ''))
+                                .filter(Boolean)
+                        )
+                    ).slice(0, 6);
+
+                    return [String(companyId), { skills: uniqueSkills, totalJobs }] as const;
+                })
+            );
+
+            setCompanyInsights(Object.fromEntries(insightEntries));
+        };
+
+        fetchCompanyInsights();
+    }, [displayCompany]);
+
     return (
         <div className={`${styles["company-section"]}`}>
             <div className={styles["company-content"]}>
@@ -79,24 +129,58 @@ const CompanyCard = (props: IProps) => {
                         </Col>
 
                         {displayCompany?.map(item => {
+                            const insight = companyInsights[String(item.id)] || { skills: [], totalJobs: 0 };
+                            const locationText = item.address || 'Đang cập nhật địa điểm';
+                            const logoSrc = item?.logo
+                                ? `${import.meta.env.VITE_BACKEND_URL}/storage/company/${item.logo}`
+                                : '/company-placeholder.svg';
                             return (
-                                <Col span={24} md={6} key={item.id}>
+                                <Col span={24} md={8} key={item.id}>
                                     <Card
                                         onClick={() => handleViewDetailJob(item)}
-                                        style={{ height: 350 }}
+                                        className={styles.companyCard}
                                         hoverable
-                                        cover={
-                                            <div className={styles["card-customize"]} >
+                                    >
+                                        <div className={styles.companyCardTop}>
+                                            <div className={styles.companyPattern}></div>
+                                            <div className={styles.companyLogoWrap}>
                                                 <img
-                                                    style={{ maxWidth: "200px" }}
-                                                    alt="example"
-                                                    src={`${import.meta.env.VITE_BACKEND_URL}/storage/company/${item?.logo}`}
+                                                    className={styles.companyLogo}
+                                                    alt="company-logo"
+                                                    src={logoSrc}
+                                                    onError={(event) => {
+                                                        const target = event.currentTarget;
+                                                        if (target.dataset.fallbackApplied === 'true') return;
+                                                        target.dataset.fallbackApplied = 'true';
+                                                        target.src = '/company-placeholder.svg';
+                                                    }}
                                                 />
                                             </div>
-                                        }
-                                    >
-                                        <Divider />
-                                        <h3 style={{ textAlign: "center" }}>{item.name}</h3>
+                                            <Typography.Title level={5} className={styles.companyName}>
+                                                {item.name}
+                                            </Typography.Title>
+
+                                            <div className={styles.companySkillRow}>
+                                                {(insight.skills.length ? insight.skills : ['IT', 'Developer', 'Teamwork']).map((skill) => (
+                                                    <Tag key={`${item.id}-${skill}`} className={styles.companySkillTag}>
+                                                        {skill}
+                                                    </Tag>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.companyFlexSpacer}></div>
+
+                                        <div className={styles.companyCardBottom}>
+                                            <div className={styles.companyAddressTag}>
+                                                <EnvironmentOutlined /> {locationText}
+                                            </div>
+                                            <div className={styles.companyJobCount}>
+                                                <span className={styles.companyJobDot}></span>
+                                                <span>{insight.totalJobs} Việc làm</span>
+                                                <RightOutlined />
+                                            </div>
+                                        </div>
                                     </Card>
                                 </Col>
                             )

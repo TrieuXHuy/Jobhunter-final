@@ -1,8 +1,8 @@
 import { callFetchJob } from '@/config/api';
 import { convertSlug, getLocationName } from '@/config/utils';
 import { IJob } from '@/types/backend';
-import { EnvironmentOutlined, ThunderboltOutlined } from '@ant-design/icons';
-import { Card, Col, Empty, Pagination, Row, Spin } from 'antd';
+import { EnvironmentOutlined, ThunderboltOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { Card, Col, Empty, Pagination, Row, Spin, Tag } from 'antd';
 import { useState, useEffect, useMemo } from 'react';
 import { isMobile } from 'react-device-detect';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -23,7 +23,7 @@ const JobCard = (props: IProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [current, setCurrent] = useState(1);
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize, setPageSize] = useState(showPagination ? 8 : 5);
     const [total, setTotal] = useState(0);
     const [sortQuery, setSortQuery] = useState("sort=updatedAt,desc");
     const navigate = useNavigate();
@@ -124,8 +124,12 @@ const JobCard = (props: IProps) => {
 
                         {displayJob?.map(item => {
                             return (
-                                <Col span={24} md={12} key={item.id}>
-                                    <Card size="small" title={null} hoverable
+                                <Col span={24} md={showPagination ? 24 : 12} key={item.id}>
+                                    <Card
+                                        size="small"
+                                        title={null}
+                                        hoverable
+                                        className={`${styles.jobCard} ${showPagination ? styles.jobCardList : ''}`}
                                         onClick={() => handleViewDetailJob(item)}
                                     >
                                         <div className={styles["card-job-content"]}>
@@ -138,8 +142,17 @@ const JobCard = (props: IProps) => {
                                             <div className={styles["card-job-right"]}>
                                                 <div className={styles["job-title"]}>{item.name}</div>
                                                 <div className={styles["job-location"]}><EnvironmentOutlined style={{ color: '#58aaab' }} />&nbsp;{getLocationName(item.location)}</div>
-                                                <div><ThunderboltOutlined style={{ color: 'orange' }} />&nbsp;{(item.salary + "")?.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} đ</div>
-                                                <div className={styles["job-updatedAt"]}>{getRelativeUpdatedTime(item)}</div>
+                                                <div className={styles["job-salary"]}><ThunderboltOutlined style={{ color: 'orange' }} />&nbsp;{(item.salary + "")?.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} đ</div>
+                                                <div className={styles["job-skill-tags"]}>
+                                                    {(item.skills || []).slice(0, 3).map((skill) => (
+                                                        <Tag key={skill.id || skill.name} className={styles["job-skill-tag"]}>
+                                                            {skill.name}
+                                                        </Tag>
+                                                    ))}
+                                                </div>
+                                                <div className={styles["job-updatedAt"]}>
+                                                    <ClockCircleOutlined /> {getRelativeUpdatedTime(item)}
+                                                </div>
                                             </div>
                                         </div>
 
