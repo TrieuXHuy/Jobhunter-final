@@ -17,10 +17,11 @@ interface IProps {
     showPagination?: boolean;
     savedOnly?: boolean;
     title?: string;
+    customFilter?: string;
 }
 
 const JobCard = (props: IProps) => {
-    const { showPagination = false, savedOnly = false, title = "Công Việc Mới Nhất" } = props;
+    const { showPagination = false, savedOnly = false, title = "Công Việc Mới Nhất", customFilter = "" } = props;
 
     const [displayJob, setDisplayJob] = useState<IJob[] | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -63,7 +64,7 @@ const JobCard = (props: IProps) => {
 
     useEffect(() => {
         setCurrent(1);
-    }, [filter]);
+    }, [filter, customFilter]);
 
     useEffect(() => {
         fetchJob();
@@ -80,8 +81,9 @@ const JobCard = (props: IProps) => {
     const fetchJob = async () => {
         setIsLoading(true)
         let query = `page=${current}&size=${pageSize}`;
-        if (!savedOnly && filter) {
-            query += `&${filter}`;
+        const activeFilter = customFilter || filter;
+        if (!savedOnly && activeFilter) {
+            query += `&${activeFilter}`;
         }
         if (!savedOnly && sortQuery) {
             query += `&${sortQuery}`;

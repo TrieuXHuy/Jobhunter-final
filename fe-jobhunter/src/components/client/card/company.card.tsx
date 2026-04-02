@@ -71,15 +71,6 @@ const CompanyCard = (props: IProps) => {
         }
     }
 
-    const toPlainText = (value?: string) => {
-        if (!value) return '';
-        return value
-            .replace(/<[^>]*>/g, ' ')
-            .replace(/&nbsp;/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-    };
-
     useEffect(() => {
         const fetchCompanyInsights = async () => {
             if (!displayCompany || displayCompany.length === 0) return;
@@ -161,11 +152,17 @@ const CompanyCard = (props: IProps) => {
                                             </Typography.Title>
 
                                             <div className={styles.companySkillRow}>
-                                                {(insight.skills.length ? insight.skills : ['IT', 'Developer', 'Teamwork']).map((skill) => (
-                                                    <Tag key={`${item.id}-${skill}`} className={styles.companySkillTag}>
-                                                        {skill}
-                                                    </Tag>
-                                                ))}
+                                                {insight.skills.length > 0 ? (
+                                                    insight.skills.map((skill) => (
+                                                        <Tag key={`${item.id}-${skill}`} className={styles.companySkillTag}>
+                                                            {skill}
+                                                        </Tag>
+                                                    ))
+                                                ) : (
+                                                    <Typography.Text className={styles.companySkillEmpty}>
+                                                        Chưa cập nhật công nghệ
+                                                    </Typography.Text>
+                                                )}
                                             </div>
                                         </div>
 
