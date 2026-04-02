@@ -1,4 +1,4 @@
-import { IBackendRes, ICompany, IAccount, IUser, IModelPaginate, IGetAccount, IJob, IResume, ISkill, IPermission, IRole } from '@/types/backend';
+import { IBackendRes, ICompany, IAccount, IUser, IModelPaginate, IGetAccount, IJob, IResume, IResumeByUser, ISkill, IPermission, IRole, ISubscriber } from '@/types/backend';
 import axios from 'config/axios-customize';
 
 interface IUserUpsertPayload {
@@ -213,8 +213,24 @@ export const callFetchResumeById = (id: string) => {
     return axios.get<IBackendRes<IResume>>(`/api/v1/resumes/${id}`);
 }
 
-export const callFetchResumeByUser = () => {
-    return axios.post<IBackendRes<IResume>>(`/api/v1/resumes/by-user`);
+export const callFetchResumeByUser = (query: string) => {
+    return axios.post<IBackendRes<IModelPaginate<IResumeByUser>>>(`/api/v1/resumes/by-user?${query}`);
+}
+
+/**
+ *
+Module Subscriber
+ */
+export const callFetchSubscriberSkills = () => {
+    return axios.post<IBackendRes<ISubscriber>>('/api/v1/subscribers/skills');
+}
+
+export const callCreateSubscriber = (subscriber: ISubscriber) => {
+    return axios.post<IBackendRes<ISubscriber>>('/api/v1/subscribers', { ...subscriber });
+}
+
+export const callUpdateSubscriber = (subscriber: ISubscriber) => {
+    return axios.put<IBackendRes<ISubscriber>>('/api/v1/subscribers', { ...subscriber });
 }
 
 /**

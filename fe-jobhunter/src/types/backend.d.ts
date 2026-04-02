@@ -127,6 +127,31 @@ export interface IResume {
     updatedAt?: string;
 }
 
+export interface IResumeByUser {
+    id?: string | number;
+    email: string;
+    url: string;
+    status: string;
+    createdAt?: string;
+    updatedAt?: string;
+    createdBy?: string;
+    updatedBy?: string;
+    companyName?: string;
+    job?: {
+        id: string | number;
+        name: string;
+    };
+}
+
+export interface ISubscriber {
+    id?: string | number;
+    email: string;
+    name: string;
+    skills: { id: string | number; name?: string }[];
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export interface IPermission {
     id?: string | number;
     name: string;

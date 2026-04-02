@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { callLogout } from '@/config/api';
 import { setLogoutAction } from '@/redux/slice/accountSlide';
 import { hasAnyAdminPermission } from '@/config/permission';
+import AccountManageModal from './modal/manage.account.modal';
 
 const Header = (props: any) => {
     const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Header = (props: any) => {
     const user = useAppSelector(state => state.account.user);
     const canAccessAdmin = hasAnyAdminPermission(user);
     const [openMobileMenu, setOpenMobileMenu] = useState<boolean>(false);
+    const [openAccountModal, setOpenAccountModal] = useState<boolean>(false);
 
     const [current, setCurrent] = useState('home');
     const location = useLocation();
@@ -63,6 +65,13 @@ const Header = (props: any) => {
     }
 
     const itemsDropdown: MenuProps['items'] = [
+        {
+            label: <label
+                style={{ cursor: 'pointer' }}
+                onClick={() => setOpenAccountModal(true)}
+            >Quản lý tài khoản</label>,
+            key: 'manage-account',
+        },
         canAccessAdmin ? {
             label: <Link to={'/admin'}>Trang quản trị</Link>,
             key: 'admin',
@@ -142,6 +151,10 @@ const Header = (props: any) => {
                     items={itemsMobiles}
                 />
             </Drawer>
+            <AccountManageModal
+                open={openAccountModal}
+                onClose={() => setOpenAccountModal(false)}
+            />
         </>
     )
 };
