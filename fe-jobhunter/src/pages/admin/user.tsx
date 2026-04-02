@@ -68,7 +68,7 @@ const UserPage = () => {
             hideInSearch: true,
         },
         {
-            title: 'Name',
+            title: 'Tên hiển thị',
             dataIndex: 'name',
             sorter: true,
         },
@@ -78,14 +78,14 @@ const UserPage = () => {
             sorter: true,
         },
         {
-            title: 'Role',
+            title: 'Vai trò',
             dataIndex: 'role',
             render: (_, record) => <>{renderRoleName(record.role)}</>,
             hideInSearch: true,
         },
 
         {
-            title: 'CreatedAt',
+            title: 'Ngày tạo',
             dataIndex: 'createdAt',
             width: 200,
             sorter: true,
@@ -97,7 +97,7 @@ const UserPage = () => {
             hideInSearch: true,
         },
         {
-            title: 'UpdatedAt',
+            title: 'Ngày cập nhật',
             dataIndex: 'updatedAt',
             width: 200,
             sorter: true,
@@ -110,7 +110,7 @@ const UserPage = () => {
         },
         {
 
-            title: 'Actions',
+            title: 'Thao tác',
             hideInSearch: true,
             width: 50,
             render: (_value, entity, _index, _action) => (
@@ -208,7 +208,7 @@ const UserPage = () => {
         <div>
             <DataTable<IUser>
                 actionRef={tableRef}
-                headerTitle="Danh sách Users"
+                headerTitle="Danh sách người dùng"
                 rowKey="id"
                 loading={isFetching}
                 columns={columns}

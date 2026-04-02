@@ -163,7 +163,7 @@ const ModalUser = (props: IProps) => {
     return (
         <>
             <ModalForm
-                title={<>{dataInit?.id ? "Cập nhật User" : "Tạo mới User"}</>}
+                title={<>{dataInit?.id ? "Cập nhật người dùng" : "Tạo mới người dùng"}</>}
                 open={openModal}
                 modalProps={{
                     onCancel: () => { handleReset() },
@@ -196,10 +196,10 @@ const ModalUser = (props: IProps) => {
                     <Col lg={12} md={12} sm={24} xs={24}>
                         <ProFormText.Password
                             disabled={dataInit?.id ? true : false}
-                            label="Password"
+                            label="Mật khẩu"
                             name="password"
                             rules={[{ required: dataInit?.id ? false : true, message: 'Vui lòng không bỏ trống' }]}
-                            placeholder="Nhập password"
+                            placeholder="Nhập mật khẩu"
                         />
                     </Col>
                     <Col lg={6} md={6} sm={24} xs={24}>
@@ -245,7 +245,7 @@ const ModalUser = (props: IProps) => {
                     <Col lg={12} md={12} sm={24} xs={24}>
                         <ProFormSelect
                             name="company"
-                            label="Thuộc Công Ty"
+                            label="Thuộc công ty"
                             placeholder="Chọn công ty"
                             options={companyOptions}
                             showSearch

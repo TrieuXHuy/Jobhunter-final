@@ -57,7 +57,7 @@ const PermissionPage = () => {
             hideInSearch: true,
         },
         {
-            title: 'Name',
+            title: 'Tên quyền',
             dataIndex: 'name',
             sorter: true,
         },
@@ -67,7 +67,7 @@ const PermissionPage = () => {
             sorter: true,
         },
         {
-            title: 'Method',
+            title: 'Phương thức',
             dataIndex: 'method',
             sorter: true,
             renderFormItem: () => (
@@ -86,13 +86,13 @@ const PermissionPage = () => {
             ),
         },
         {
-            title: 'Module',
+            title: 'Phân hệ',
             dataIndex: 'module',
             sorter: true,
         },
 
         {
-            title: 'CreatedAt',
+            title: 'Ngày tạo',
             dataIndex: 'createdAt',
             width: 200,
             sorter: true,
@@ -105,7 +105,7 @@ const PermissionPage = () => {
         },
         {
 
-            title: 'Actions',
+            title: 'Thao tác',
             hideInSearch: true,
             width: 80,
             render: (_value, entity) => (
@@ -187,7 +187,7 @@ const PermissionPage = () => {
         <div>
             <DataTable<IPermission>
                 actionRef={tableRef}
-                headerTitle="Danh sách Permissions"
+                headerTitle="Danh sách quyền"
                 rowKey="id"
                 loading={isFetching}
                 columns={columns}

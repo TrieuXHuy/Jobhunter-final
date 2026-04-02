@@ -197,7 +197,7 @@ const ModalRole = (props: IProps) => {
     return (
         <>
             <ModalForm
-                title={<>{dataInit?.id ? "Cập nhật Role" : "Tạo mới Role"}</>}
+                title={<>{dataInit?.id ? "Cập nhật vai trò" : "Tạo mới vai trò"}</>}
                 open={openModal}
                 modalProps={{
                     onCancel: () => { handleReset() },
@@ -219,17 +219,17 @@ const ModalRole = (props: IProps) => {
                     <Row gutter={16}>
                         <Col span={24}>
                             <ProFormText
-                                label="Name"
+                                label="Tên vai trò"
                                 name="name"
                                 rules={[{ required: true, message: 'Vui lòng không bỏ trống' }]}
-                                placeholder="Nhập tên role"
+                                placeholder="Nhập tên vai trò"
                             />
                         </Col>
                         <Col span={24}>
                             <ProFormTextArea
-                                label="Description"
+                                label="Mô tả"
                                 name="description"
-                                placeholder="Nhập mô tả role"
+                                placeholder="Nhập mô tả vai trò"
                                 fieldProps={{ autoSize: { minRows: 3 } }}
                             />
                         </Col>

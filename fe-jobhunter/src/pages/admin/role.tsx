@@ -57,27 +57,27 @@ const RolePage = () => {
             hideInSearch: true,
         },
         {
-            title: 'Name',
+            title: 'Tên vai trò',
             dataIndex: 'name',
             sorter: true,
         },
         {
-            title: 'Description',
+            title: 'Mô tả',
             dataIndex: 'description',
             sorter: true,
         },
         {
-            title: 'Active',
+            title: 'Trạng thái',
             dataIndex: 'active',
             hideInSearch: true,
             render: (_dom, entity) => (
                 <Tag color={entity.active ? 'lime' : 'red'}>
-                    {entity.active ? 'ACTIVE' : 'INACTIVE'}
+                    {entity.active ? 'ĐANG HOẠT ĐỘNG' : 'NGỪNG HOẠT ĐỘNG'}
                 </Tag>
             ),
         },
         {
-            title: 'CreatedAt',
+            title: 'Ngày tạo',
             dataIndex: 'createdAt',
             width: 200,
             sorter: true,
@@ -90,7 +90,7 @@ const RolePage = () => {
         },
         {
 
-            title: 'Actions',
+            title: 'Thao tác',
             hideInSearch: true,
             width: 80,
             render: (_value, entity) => (
@@ -170,7 +170,7 @@ const RolePage = () => {
         <div>
             <DataTable<IRole>
                 actionRef={tableRef}
-                headerTitle="Danh sách Roles"
+                headerTitle="Danh sách vai trò"
                 rowKey="id"
                 loading={isFetching}
                 columns={columns}

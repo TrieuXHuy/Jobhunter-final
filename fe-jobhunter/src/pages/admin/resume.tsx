@@ -44,7 +44,7 @@ const ResumePage = () => {
 
     const columns: ProColumns<IResume>[] = [
         {
-            title: 'Id',
+            title: 'Mã',
             dataIndex: 'id',
             width: 50,
             render: (text, record, index, action) => {
@@ -80,18 +80,18 @@ const ResumePage = () => {
         },
 
         {
-            title: 'Job',
+            title: 'Việc làm',
             dataIndex: ["job", "name"],
             hideInSearch: true,
         },
         {
-            title: 'Company',
+            title: 'Công ty',
             dataIndex: "companyName",
             hideInSearch: true,
         },
 
         {
-            title: 'CreatedAt',
+            title: 'Ngày tạo',
             dataIndex: 'createdAt',
             width: 200,
             sorter: true,
@@ -103,7 +103,7 @@ const ResumePage = () => {
             hideInSearch: true,
         },
         {
-            title: 'UpdatedAt',
+            title: 'Ngày cập nhật',
             dataIndex: 'updatedAt',
             width: 200,
             sorter: true,
@@ -116,7 +116,7 @@ const ResumePage = () => {
         },
         {
 
-            title: 'Actions',
+            title: 'Thao tác',
             hideInSearch: true,
             width: 100,
             render: (_value, entity, _index, _action) => (
@@ -199,7 +199,7 @@ const ResumePage = () => {
         <div>
             <DataTable<IResume>
                 actionRef={tableRef}
-                headerTitle="Danh sách Resumes"
+                headerTitle="Danh sách hồ sơ ứng tuyển"
                 rowKey="id"
                 loading={isFetching}
                 columns={columns}

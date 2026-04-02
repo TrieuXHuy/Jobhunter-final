@@ -57,18 +57,18 @@ const CompanyPage = () => {
             hideInSearch: true,
         },
         {
-            title: 'Name',
+            title: 'Tên công ty',
             dataIndex: 'name',
             sorter: true,
         },
         {
-            title: 'Address',
+            title: 'Địa chỉ',
             dataIndex: 'address',
             sorter: true,
         },
 
         {
-            title: 'CreatedAt',
+            title: 'Ngày tạo',
             dataIndex: 'createdAt',
             width: 200,
             sorter: true,
@@ -80,7 +80,7 @@ const CompanyPage = () => {
             hideInSearch: true,
         },
         {
-            title: 'UpdatedAt',
+            title: 'Ngày cập nhật',
             dataIndex: 'updatedAt',
             width: 200,
             sorter: true,
@@ -93,7 +93,7 @@ const CompanyPage = () => {
         },
         {
 
-            title: 'Actions',
+            title: 'Thao tác',
             hideInSearch: true,
             width: 50,
             render: (_value, entity, _index, _action) => (

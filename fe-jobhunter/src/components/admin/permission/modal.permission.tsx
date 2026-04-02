@@ -82,7 +82,7 @@ const ModalPermission = (props: IProps) => {
     return (
         <>
             <ModalForm
-                title={<>{dataInit?.id ? "Cập nhật Permission" : "Tạo mới Permission"}</>}
+                title={<>{dataInit?.id ? "Cập nhật quyền" : "Tạo mới quyền"}</>}
                 open={openModal}
                 modalProps={{
                     onCancel: () => { handleReset() },
@@ -103,7 +103,7 @@ const ModalPermission = (props: IProps) => {
                 <Row gutter={16}>
                     <Col span={24}>
                         <ProFormText
-                            label="Name"
+                            label="Tên quyền"
                             name="name"
                             rules={[{ required: true, message: 'Vui lòng không bỏ trống' }]}
                             placeholder="Nhập tên permission"
@@ -122,7 +122,7 @@ const ModalPermission = (props: IProps) => {
                     <Col lg={12} md={12} sm={24} xs={24}>
                         <ProFormSelect
                             name="method"
-                            label="Method"
+                            label="Phương thức"
                             valueEnum={methodOptions}
                             placeholder="Chọn method"
                             rules={[{ required: true, message: 'Vui lòng chọn method' }]}
@@ -132,7 +132,7 @@ const ModalPermission = (props: IProps) => {
                     <Col lg={12} md={12} sm={24} xs={24}>
                         <ProFormSelect
                             name="module"
-                            label="Module"
+                            label="Phân hệ"
                             valueEnum={moduleOptions}
                             placeholder="Chọn module"
                             rules={[{ required: true, message: 'Vui lòng chọn module' }]}

@@ -75,7 +75,7 @@ const JobPage = () => {
             },
         },
         {
-            title: 'Level',
+            title: 'Trình độ',
             dataIndex: 'level',
             renderFormItem: (item, props, form) => (
                 <ProFormSelect
@@ -99,7 +99,7 @@ const JobPage = () => {
             render(dom, entity, index, action, schema) {
                 return <>
                     <Tag color={entity.active ? "lime" : "red"} >
-                        {entity.active ? "ACTIVE" : "INACTIVE"}
+                        {entity.active ? "ĐANG TUYỂN" : "NGỪNG TUYỂN"}
                     </Tag>
                 </>
             },
@@ -107,7 +107,7 @@ const JobPage = () => {
         },
 
         {
-            title: 'CreatedAt',
+            title: 'Ngày tạo',
             dataIndex: 'createdAt',
             width: 200,
             sorter: true,
@@ -119,7 +119,7 @@ const JobPage = () => {
             hideInSearch: true,
         },
         {
-            title: 'UpdatedAt',
+            title: 'Ngày cập nhật',
             dataIndex: 'updatedAt',
             width: 200,
             sorter: true,
@@ -132,7 +132,7 @@ const JobPage = () => {
         },
         {
 
-            title: 'Actions',
+            title: 'Thao tác',
             hideInSearch: true,
             width: 50,
             render: (_value, entity, _index, _action) => (
@@ -219,7 +219,7 @@ const JobPage = () => {
         <div>
             <DataTable<IJob>
                 actionRef={tableRef}
-                headerTitle="Danh sách Jobs"
+                headerTitle="Danh sách việc làm"
                 rowKey="id"
                 loading={isFetching}
                 columns={columns}

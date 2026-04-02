@@ -285,7 +285,7 @@ const ViewUpsertJob = (props: any) => {
                                         SENIOR: 'SENIOR',
                                     }}
                                     placeholder="Vui lòng chọn trình độ"
-                                    rules={[{ required: true, message: 'Vui lòng chọn level!' }]}
+                                    rules={[{ required: true, message: 'Vui lòng chọn trình độ!' }]}
                                 />
                             </Col>
 

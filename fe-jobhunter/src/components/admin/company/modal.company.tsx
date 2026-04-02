@@ -272,7 +272,7 @@ const ModalCompany = (props: IProps) => {
                                         >
                                             <div>
                                                 {loadingUpload ? <LoadingOutlined /> : <PlusOutlined />}
-                                                <div style={{ marginTop: 8 }}>Upload</div>
+                                                <div style={{ marginTop: 8 }}>Tải lên</div>
                                             </div>
                                         </Upload>
                                     </ConfigProvider>

@@ -58,26 +58,26 @@ const SkillPage = () => {
             hideInSearch: true,
         },
         {
-            title: 'Name',
+            title: 'Tên kỹ năng',
             dataIndex: 'name',
             sorter: true,
         },
 
         {
-            title: 'Created By',
+            title: 'Người tạo',
             dataIndex: 'createdBy',
             hideInSearch: true,
         },
 
         {
-            title: 'Updated By',
+            title: 'Người cập nhật',
             dataIndex: 'updatedBy',
             hideInSearch: true,
         },
 
 
         {
-            title: 'CreatedAt',
+            title: 'Ngày tạo',
             dataIndex: 'createdAt',
             width: 200,
             sorter: true,
@@ -89,7 +89,7 @@ const SkillPage = () => {
             hideInSearch: true,
         },
         {
-            title: 'UpdatedAt',
+            title: 'Ngày cập nhật',
             dataIndex: 'updatedAt',
             width: 200,
             sorter: true,
@@ -102,7 +102,7 @@ const SkillPage = () => {
         },
         {
 
-            title: 'Actions',
+            title: 'Thao tác',
             hideInSearch: true,
             width: 50,
             render: (_value, entity, _index, _action) => (

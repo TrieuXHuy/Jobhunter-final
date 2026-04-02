@@ -161,7 +161,7 @@ const ViewDetailResume = (props: IProps) => {
                 extra={
 
                     <Button loading={isSubmit} type="primary" onClick={handleChangeStatus}>
-                        Change Status
+                        Cập nhật trạng thái
                     </Button>
 
                 }
