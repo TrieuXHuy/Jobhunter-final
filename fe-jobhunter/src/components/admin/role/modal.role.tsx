@@ -1,10 +1,11 @@
 import { ModalForm, ProFormSwitch, ProFormText, ProFormTextArea } from "@ant-design/pro-components";
 import { callCreateRole, callFetchPermission, callFetchRoleById, callUpdateRole } from "@/config/api";
 import { IPermission, IRole } from "@/types/backend";
-import { Col, Divider, Form, Row, Spin, Empty, Tree, message, notification } from "antd";
+import { Card, Col, Collapse, Empty, Form, Row, Space, Spin, Switch, Tag, Typography, message, notification } from "antd";
 import { isMobile } from 'react-device-detect';
 import { useEffect, useMemo, useState } from "react";
 import queryString from "query-string";
+import styles from "./modal.role.module.scss";
 
 interface IProps {
     openModal: boolean;
@@ -30,23 +31,68 @@ const ModalRole = (props: IProps) => {
             if (!groups[moduleName]) groups[moduleName] = [];
             groups[moduleName].push(p);
         });
+
+        Object.keys(groups).forEach((moduleName) => {
+            groups[moduleName] = groups[moduleName].sort((a, b) => {
+                const methodCompare = (a.method || "").localeCompare(b.method || "");
+                if (methodCompare !== 0) return methodCompare;
+                return (a.name || "").localeCompare(b.name || "");
+            });
+        });
+
         return groups;
     }, [permissions]);
 
-    const permissionTreeData = useMemo(() => {
-        return Object.keys(groupedPermissions).reduce((acc, moduleName) => {
-            acc.push({
-                key: `module-${moduleName}`,
-                title: moduleName,
-                selectable: false,
-                children: groupedPermissions[moduleName].map((p) => ({
-                    key: String(p.id),
-                    title: `${p.name} (${p.method} ${p.apiPath})`,
-                }))
-            })
-            return acc;
-        }, [] as any[]);
+    const orderedModuleNames = useMemo(() => {
+        return Object.keys(groupedPermissions).sort((a, b) => a.localeCompare(b));
     }, [groupedPermissions]);
+
+    const selectedPermissionSet = useMemo(() => new Set(selectedPermissionIds), [selectedPermissionIds]);
+
+    const resolveMethodColor = (method: string) => {
+        switch ((method || "").toUpperCase()) {
+            case "GET":
+                return "blue";
+            case "POST":
+                return "green";
+            case "PUT":
+                return "orange";
+            case "DELETE":
+                return "red";
+            case "PATCH":
+                return "purple";
+            default:
+                return "default";
+        }
+    };
+
+    const togglePermission = (permissionId: string, checked: boolean) => {
+        setSelectedPermissionIds((prev) => {
+            const next = new Set(prev);
+            if (checked) {
+                next.add(permissionId);
+            } else {
+                next.delete(permissionId);
+            }
+            return Array.from(next);
+        });
+    };
+
+    const toggleModule = (moduleName: string, checked: boolean) => {
+        const modulePermissions = groupedPermissions[moduleName] || [];
+        setSelectedPermissionIds((prev) => {
+            const next = new Set(prev);
+            modulePermissions.forEach((permission) => {
+                const id = String(permission.id);
+                if (checked) {
+                    next.add(id);
+                } else {
+                    next.delete(id);
+                }
+            });
+            return Array.from(next);
+        });
+    };
 
     useEffect(() => {
         const init = async () => {
@@ -196,30 +242,91 @@ const ModalRole = (props: IProps) => {
                         </Col>
 
                         <Col span={24}>
-                            <Divider orientation="left" style={{ marginTop: 0 }}>Danh sách Permission</Divider>
-                            <Form.Item>
-                                <div>
-                                    {permissionTreeData.length === 0 ? (
-                                        <Empty description="Chưa có permission" />
-                                    ) : (
-                                        <Tree
-                                            checkable
-                                            defaultExpandAll
-                                            checkedKeys={selectedPermissionIds}
-                                            treeData={permissionTreeData}
-                                            onCheck={(checkedKeysValue) => {
-                                                const keys = Array.isArray(checkedKeysValue)
-                                                    ? checkedKeysValue
-                                                    : checkedKeysValue.checked;
-                                                setSelectedPermissionIds(
-                                                    keys
-                                                        .map((x) => String(x))
-                                                        .filter((x) => !x.startsWith('module-'))
-                                                );
-                                            }}
-                                        />
-                                    )}
+                            <Form.Item label="Danh sách Permission" className={styles.permissionBlock}>
+                                <div className={styles.permissionSummary}>
+                                    <Typography.Text type="secondary">
+                                        Đã chọn {selectedPermissionIds.length}/{permissions.length} quyền
+                                    </Typography.Text>
                                 </div>
+
+                                {orderedModuleNames.length === 0 ? (
+                                    <Empty description="Chưa có permission" />
+                                ) : (
+                                    <Collapse
+                                        className={styles.permissionCollapse}
+                                        defaultActiveKey={orderedModuleNames}
+                                        ghost
+                                    >
+                                        {orderedModuleNames.map((moduleName) => {
+                                            const modulePermissions = groupedPermissions[moduleName] || [];
+                                            const checkedCount = modulePermissions.filter((permission) => {
+                                                return selectedPermissionSet.has(String(permission.id));
+                                            }).length;
+                                            const allChecked = modulePermissions.length > 0 && checkedCount === modulePermissions.length;
+
+                                            return (
+                                                <Collapse.Panel
+                                                    key={moduleName}
+                                                    header={
+                                                        <div className={styles.moduleHeader}>
+                                                            <div>
+                                                                <Typography.Text strong>{moduleName}</Typography.Text>
+                                                                <Typography.Text type="secondary" className={styles.moduleHint}>
+                                                                    {checkedCount}/{modulePermissions.length} quyền
+                                                                </Typography.Text>
+                                                            </div>
+
+                                                            <div
+                                                                onClick={(event) => event.stopPropagation()}
+                                                                className={styles.moduleSwitch}
+                                                            >
+                                                                <Switch
+                                                                    checked={allChecked}
+                                                                    onChange={(checked) => toggleModule(moduleName, checked)}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                >
+                                                    <Row gutter={[12, 12]}>
+                                                        {modulePermissions.map((permission) => {
+                                                            const permissionId = String(permission.id);
+                                                            const checked = selectedPermissionSet.has(permissionId);
+
+                                                            return (
+                                                                <Col xs={24} md={12} key={permissionId}>
+                                                                    <Card size="small" className={styles.permissionCard}>
+                                                                        <Space direction="vertical" size={6} style={{ width: "100%" }}>
+                                                                            <div className={styles.permissionTitleRow}>
+                                                                                <Typography.Text strong>
+                                                                                    {permission.name}
+                                                                                </Typography.Text>
+                                                                                <Switch
+                                                                                    size="small"
+                                                                                    checked={checked}
+                                                                                    onChange={(isChecked) => togglePermission(permissionId, isChecked)}
+                                                                                />
+                                                                            </div>
+
+                                                                            <Space size={8} wrap>
+                                                                                <Tag color={resolveMethodColor(permission.method)}>
+                                                                                    {(permission.method || "").toUpperCase()}
+                                                                                </Tag>
+                                                                                <Typography.Text type="secondary" className={styles.apiPath}>
+                                                                                    {permission.apiPath}
+                                                                                </Typography.Text>
+                                                                            </Space>
+                                                                        </Space>
+                                                                    </Card>
+                                                                </Col>
+                                                            );
+                                                        })}
+                                                    </Row>
+                                                </Collapse.Panel>
+                                            );
+                                        })}
+                                    </Collapse>
+                                )}
                             </Form.Item>
                         </Col>
                     </Row>

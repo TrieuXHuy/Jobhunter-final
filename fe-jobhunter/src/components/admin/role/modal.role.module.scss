@@ -1,0 +1,70 @@
+.permissionBlock {
+  margin-bottom: 0;
+}
+
+.permissionSummary {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.permissionCollapse {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px;
+
+  :global(.ant-collapse-item) {
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  :global(.ant-collapse-item:last-child) {
+    border-bottom: none;
+  }
+
+  :global(.ant-collapse-header) {
+    padding: 8px 4px !important;
+  }
+
+  :global(.ant-collapse-content-box) {
+    padding: 8px 4px 12px !important;
+  }
+}
+
+.moduleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.moduleHint {
+  margin-left: 10px;
+  font-size: 12px;
+}
+
+.moduleSwitch {
+  margin-left: 12px;
+}
+
+.permissionCard {
+  border-radius: 10px;
+  border: 1px solid #dbe6f3;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+
+  :global(.ant-card-body) {
+    padding: 12px;
+  }
+}
+
+.permissionTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.apiPath {
+  word-break: break-all;
+  font-size: 12px;
+}

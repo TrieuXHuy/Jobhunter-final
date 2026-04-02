@@ -64,7 +64,7 @@ const Header = (props: any) => {
         }
     }
 
-    const itemsDropdown: MenuProps['items'] = [
+    const itemsDropdown: NonNullable<MenuProps['items']> = [
         {
             label: <label
                 style={{ cursor: 'pointer' }}
@@ -84,7 +84,7 @@ const Header = (props: any) => {
             key: 'logout',
             icon: <LogoutOutlined />
         },
-    ].filter(Boolean) as MenuProps['items'];
+    ].filter(Boolean) as NonNullable<MenuProps['items']>;
 
     const itemsMobiles = [...items, ...itemsDropdown];
 

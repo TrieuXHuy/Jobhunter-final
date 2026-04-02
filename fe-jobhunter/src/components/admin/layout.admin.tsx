@@ -58,7 +58,7 @@ const LayoutAdmin = () => {
         }
     }
 
-    const items: MenuProps['items'] = [
+    const items: NonNullable<MenuProps['items']> = [
         canViewDashboard ? {
             label: <Link to='/admin'>Dashboard</Link>,
             key: '/admin',
@@ -95,7 +95,7 @@ const LayoutAdmin = () => {
             icon: <ExceptionOutlined />
         } : null,
 
-    ].filter(Boolean) as MenuProps['items'];
+    ].filter(Boolean) as NonNullable<MenuProps['items']>;
 
     if (isMobile) {
         items.push({
