@@ -1,33 +1,39 @@
-import { callFetchJob } from '@/config/api';
+import { callAddFavoriteJob, callFetchFavoriteJobIds, callFetchFavoriteJobs, callFetchJob, callRemoveFavoriteJob } from '@/config/api';
 import { convertSlug, getLocationName } from '@/config/utils';
 import { IJob } from '@/types/backend';
-import { EnvironmentOutlined, ThunderboltOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import { Card, Col, Empty, Pagination, Row, Spin, Tag } from 'antd';
-import { useState, useEffect, useMemo } from 'react';
+import { EnvironmentOutlined, ThunderboltOutlined, ClockCircleOutlined, HeartFilled, HeartOutlined } from '@ant-design/icons';
+import { Card, Col, Empty, Pagination, Row, Spin, Tag, message } from 'antd';
+import { useState, useEffect, useMemo, type MouseEvent } from 'react';
 import { isMobile } from 'react-device-detect';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import styles from 'styles/client.module.scss';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { useAppSelector } from '@/redux/hooks';
 dayjs.extend(relativeTime);
 
 
 interface IProps {
     showPagination?: boolean;
+    savedOnly?: boolean;
+    title?: string;
 }
 
 const JobCard = (props: IProps) => {
-    const { showPagination = false } = props;
+    const { showPagination = false, savedOnly = false, title = "Công Việc Mới Nhất" } = props;
 
     const [displayJob, setDisplayJob] = useState<IJob[] | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [favoriteJobIds, setFavoriteJobIds] = useState<number[]>([]);
+    const [isFavoriteLoading, setIsFavoriteLoading] = useState<boolean>(false);
 
     const [current, setCurrent] = useState(1);
     const [pageSize, setPageSize] = useState(showPagination ? 8 : 5);
     const [total, setTotal] = useState(0);
-    const [sortQuery, setSortQuery] = useState("sort=updatedAt,desc");
+    const sortQuery = "sort=updatedAt,desc";
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const isAuthenticated = useAppSelector(state => state.account.isAuthenticated);
 
     const filter = useMemo(() => {
         const parts: string[] = [];
@@ -63,22 +69,37 @@ const JobCard = (props: IProps) => {
         fetchJob();
     }, [current, pageSize, filter, sortQuery]);
 
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchFavoriteJobIds();
+        } else {
+            setFavoriteJobIds([]);
+        }
+    }, [isAuthenticated]);
+
     const fetchJob = async () => {
         setIsLoading(true)
         let query = `page=${current}&size=${pageSize}`;
-        if (filter) {
+        if (!savedOnly && filter) {
             query += `&${filter}`;
         }
-        if (sortQuery) {
+        if (!savedOnly && sortQuery) {
             query += `&${sortQuery}`;
         }
 
-        const res = await callFetchJob(query);
+        const res = savedOnly ? await callFetchFavoriteJobs(query) : await callFetchJob(query);
         if (res && res.data) {
             setDisplayJob(res.data.result);
             setTotal(res.data.meta.total)
         }
         setIsLoading(false)
+    }
+
+    const fetchFavoriteJobIds = async () => {
+        const res = await callFetchFavoriteJobIds();
+        if (res?.data) {
+            setFavoriteJobIds(res.data.map(item => Number(item)));
+        }
     }
 
 
@@ -98,6 +119,41 @@ const JobCard = (props: IProps) => {
         navigate(`/job/${slug}?id=${item.id}`)
     }
 
+    const toggleFavorite = async (e: MouseEvent, item: IJob) => {
+        e.stopPropagation();
+
+        if (!isAuthenticated) {
+            message.warning('Bạn cần đăng nhập để lưu job yêu thích.');
+            navigate('/login');
+            return;
+        }
+
+        if (!item.id) return;
+
+        const jobId = Number(item.id);
+        const isSaved = favoriteJobIds.includes(jobId);
+
+        try {
+            setIsFavoriteLoading(true);
+            if (isSaved) {
+                await callRemoveFavoriteJob(jobId);
+                setFavoriteJobIds(prev => prev.filter(id => id !== jobId));
+                message.success('Đã bỏ lưu job');
+
+                if (savedOnly) {
+                    setDisplayJob(prev => (prev || []).filter(job => Number(job.id) !== jobId));
+                    setTotal(prev => Math.max(prev - 1, 0));
+                }
+            } else {
+                await callAddFavoriteJob(jobId);
+                setFavoriteJobIds(prev => [...prev, jobId]);
+                message.success('Đã lưu job yêu thích');
+            }
+        } finally {
+            setIsFavoriteLoading(false);
+        }
+    }
+
     const getRelativeUpdatedTime = (item: IJob) => {
         const sourceTime = item.updatedAt || item.createdAt;
         if (!sourceTime) return "";
@@ -115,7 +171,7 @@ const JobCard = (props: IProps) => {
                     <Row gutter={[20, 20]}>
                         <Col span={24}>
                             <div className={isMobile ? styles["dflex-mobile"] : styles["dflex-pc"]}>
-                                <span className={styles["title"]}>Công Việc Mới Nhất</span>
+                                <span className={styles["title"]}>{title}</span>
                                 {!showPagination &&
                                     <Link to="job">Xem tất cả</Link>
                                 }
@@ -140,6 +196,16 @@ const JobCard = (props: IProps) => {
                                                 />
                                             </div>
                                             <div className={styles["card-job-right"]}>
+                                                <button
+                                                    type="button"
+                                                    className={styles["favoriteBtn"]}
+                                                    onClick={(e) => toggleFavorite(e, item)}
+                                                    disabled={isFavoriteLoading}
+                                                >
+                                                    {favoriteJobIds.includes(Number(item.id))
+                                                        ? <HeartFilled style={{ color: '#ef4444' }} />
+                                                        : <HeartOutlined />}
+                                                </button>
                                                 <div className={styles["job-title"]}>{item.name}</div>
                                                 <div className={styles["job-location"]}><EnvironmentOutlined style={{ color: '#58aaab' }} />&nbsp;{getLocationName(item.location)}</div>
                                                 <div className={styles["job-salary"]}><ThunderboltOutlined style={{ color: 'orange' }} />&nbsp;{(item.salary + "")?.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} đ</div>

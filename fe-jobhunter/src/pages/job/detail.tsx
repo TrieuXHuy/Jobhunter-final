@@ -1,23 +1,28 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import { IJob } from "@/types/backend";
-import { callFetchJobById } from "@/config/api";
+import { callAddFavoriteJob, callFetchFavoriteJobIds, callFetchJobById, callRemoveFavoriteJob } from "@/config/api";
 import styles from 'styles/client.module.scss';
 import parse from 'html-react-parser';
-import { Col, Divider, Row, Skeleton, Tag } from "antd";
-import { DollarOutlined, EnvironmentOutlined, HistoryOutlined } from "@ant-design/icons";
+import { Col, Divider, Row, Skeleton, Tag, message } from "antd";
+import { DollarOutlined, EnvironmentOutlined, HistoryOutlined, HeartFilled, HeartOutlined } from "@ant-design/icons";
 import { getLocationName } from "@/config/utils";
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import ApplyModal from "@/components/client/modal/apply.modal";
+import { useAppSelector } from "@/redux/hooks";
 dayjs.extend(relativeTime)
 
 
 const ClientJobDetailPage = (props: any) => {
     const [jobDetail, setJobDetail] = useState<IJob | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [favoriteJobIds, setFavoriteJobIds] = useState<number[]>([]);
+    const [isFavoriteLoading, setIsFavoriteLoading] = useState<boolean>(false);
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const isAuthenticated = useAppSelector(state => state.account.isAuthenticated);
+    const navigate = useNavigate();
 
     let location = useLocation();
     let params = new URLSearchParams(location.search);
@@ -36,6 +41,48 @@ const ClientJobDetailPage = (props: any) => {
         }
         init();
     }, [id]);
+
+    useEffect(() => {
+        const fetchFavoriteIds = async () => {
+            if (!isAuthenticated) {
+                setFavoriteJobIds([]);
+                return;
+            }
+            const res = await callFetchFavoriteJobIds();
+            if (res?.data) {
+                setFavoriteJobIds(res.data.map(item => Number(item)));
+            }
+        };
+        fetchFavoriteIds();
+    }, [isAuthenticated]);
+
+    const handleToggleFavorite = async () => {
+        if (!jobDetail?.id) return;
+
+        if (!isAuthenticated) {
+            message.warning('Bạn cần đăng nhập để lưu job yêu thích.');
+            navigate('/login');
+            return;
+        }
+
+        const jobId = Number(jobDetail.id);
+        const isSaved = favoriteJobIds.includes(jobId);
+
+        try {
+            setIsFavoriteLoading(true);
+            if (isSaved) {
+                await callRemoveFavoriteJob(jobId);
+                setFavoriteJobIds(prev => prev.filter(id => id !== jobId));
+                message.success('Đã bỏ lưu job');
+            } else {
+                await callAddFavoriteJob(jobId);
+                setFavoriteJobIds(prev => [...prev, jobId]);
+                message.success('Đã lưu job yêu thích');
+            }
+        } finally {
+            setIsFavoriteLoading(false);
+        }
+    };
 
     const getRelativeUpdatedTime = (job: IJob | null) => {
         const sourceTime = job?.updatedAt || job?.createdAt;
@@ -64,6 +111,16 @@ const ClientJobDetailPage = (props: any) => {
                                         onClick={() => setIsModalOpen(true)}
                                         className={styles["btn-apply"]}
                                     >Apply Now</button>
+                                </div>
+                                <div style={{ marginTop: 10 }}>
+                                    <button
+                                        onClick={handleToggleFavorite}
+                                        className={styles["btn-favorite"]}
+                                        disabled={isFavoriteLoading}
+                                    >
+                                        {favoriteJobIds.includes(Number(jobDetail.id)) ? <HeartFilled /> : <HeartOutlined />} &nbsp;
+                                        {favoriteJobIds.includes(Number(jobDetail.id)) ? 'Đã lưu job này' : 'Lưu job yêu thích'}
+                                    </button>
                                 </div>
                                 <Divider />
                                 <div className={styles["skills"]}>

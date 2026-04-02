@@ -74,6 +74,10 @@ public class Job {
     @JsonIgnore
     List<Resume> resumes;
 
+    @ManyToMany(mappedBy = "favoriteJobs", fetch = FetchType.LAZY)
+    @JsonIgnore
+    List<User> favoriteUsers;
+
     @PrePersist
     public void handleBeforeCreate() {
         this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true

@@ -1,5 +1,6 @@
 package vn.developer.jobhunter.controller;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -81,5 +82,31 @@ public class JobController {
             Pageable pageable) {
 
         return ResponseEntity.ok().body(this.jobService.fetchAll(spec, pageable));
+    }
+
+    @PostMapping("/jobs/favorites/{jobId}")
+    @ApiMessage("Save favorite job")
+    public ResponseEntity<Void> saveFavoriteJob(@PathVariable("jobId") long jobId) throws IdInvalidException {
+        this.jobService.saveFavoriteJob(jobId);
+        return ResponseEntity.ok().body(null);
+    }
+
+    @DeleteMapping("/jobs/favorites/{jobId}")
+    @ApiMessage("Remove favorite job")
+    public ResponseEntity<Void> removeFavoriteJob(@PathVariable("jobId") long jobId) throws IdInvalidException {
+        this.jobService.removeFavoriteJob(jobId);
+        return ResponseEntity.ok().body(null);
+    }
+
+    @PostMapping("/jobs/favorites")
+    @ApiMessage("Get favorite jobs with pagination")
+    public ResponseEntity<ResultPaginationDTO> getFavoriteJobs(Pageable pageable) throws IdInvalidException {
+        return ResponseEntity.ok().body(this.jobService.fetchFavoriteJobs(pageable));
+    }
+
+    @PostMapping("/jobs/favorites/ids")
+    @ApiMessage("Get favorite job ids")
+    public ResponseEntity<List<Long>> getFavoriteJobIds() throws IdInvalidException {
+        return ResponseEntity.ok().body(this.jobService.fetchFavoriteJobIds());
     }
 }

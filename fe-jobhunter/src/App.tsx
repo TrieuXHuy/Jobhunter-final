@@ -27,6 +27,7 @@ import LayoutApp from './components/share/layout.app';
 import ViewUpsertJob from './components/admin/job/upsert.job';
 import ClientJobPage from './pages/job';
 import ClientJobDetailPage from './pages/job/detail';
+import ClientSavedJobPage from './pages/job/saved';
 import ClientCompanyPage from './pages/company';
 import ClientCompanyDetailPage from './pages/company/detail';
 import JobTabs from './pages/admin/job/job.tabs';
@@ -77,6 +78,7 @@ export default function App() {
         { index: true, element: <HomePage /> },
         { path: "job", element: <ClientJobPage /> },
         { path: "job/:id", element: <ClientJobDetailPage /> },
+        { path: "job/saved", element: <ClientSavedJobPage /> },
         { path: "company", element: <ClientCompanyPage /> },
         { path: "company/:id", element: <ClientCompanyDetailPage /> }
       ],

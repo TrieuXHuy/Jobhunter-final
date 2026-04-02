@@ -36,6 +36,11 @@ const Header = (props: any) => {
             return;
         }
 
+        if (location.pathname.startsWith('/job/saved')) {
+            setCurrent('/job/saved');
+            return;
+        }
+
         if (location.pathname.startsWith('/job')) {
             setCurrent('/job');
             return;
@@ -56,7 +61,13 @@ const Header = (props: any) => {
         {
             label: <Link to={'/job'}>Việc Làm</Link>,
             key: '/job',
-        }
+        },
+        ...(isAuthenticated
+            ? [{
+                label: <Link to={'/job/saved'}>Job đã lưu</Link>,
+                key: '/job/saved',
+            }]
+            : [])
     ];
 
 
