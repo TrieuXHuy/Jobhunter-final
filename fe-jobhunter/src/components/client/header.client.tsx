@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { LogoutOutlined, MenuFoldOutlined } from '@ant-design/icons';
-import { Avatar, Drawer, Dropdown, MenuProps, Space, message } from 'antd';
+import { Avatar, Badge, Drawer, Dropdown, MenuProps, Space, message } from 'antd';
 import { Menu, ConfigProvider } from 'antd';
 import styles from '@/styles/client.module.scss';
 import { isMobile } from 'react-device-detect';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { callLogout } from '@/config/api';
+import { callFetchResumeByUser, callLogout } from '@/config/api';
 import { setLogoutAction } from '@/redux/slice/accountSlide';
 import { hasAnyAdminPermission } from '@/config/permission';
 import AccountManageModal from './modal/manage.account.modal';
+import NotificationsModal from './modal/notifications.modal';
+import { IResumeByUser } from '@/types/backend';
 
 const Header = (props: any) => {
     const navigate = useNavigate();
@@ -21,6 +23,10 @@ const Header = (props: any) => {
     const canAccessAdmin = hasAnyAdminPermission(user);
     const [openMobileMenu, setOpenMobileMenu] = useState<boolean>(false);
     const [openAccountModal, setOpenAccountModal] = useState<boolean>(false);
+    const [openNotificationModal, setOpenNotificationModal] = useState<boolean>(false);
+    const [notifications, setNotifications] = useState<IResumeByUser[]>([]);
+    const [unreadCount, setUnreadCount] = useState<number>(0);
+    const [isLoadingNotification, setIsLoadingNotification] = useState<boolean>(false);
 
     const [current, setCurrent] = useState('home');
     const location = useLocation();
@@ -61,13 +67,7 @@ const Header = (props: any) => {
         {
             label: <Link to={'/job'}>Việc Làm</Link>,
             key: '/job',
-        },
-        ...(isAuthenticated
-            ? [{
-                label: <Link to={'/job/saved'}>Job đã lưu</Link>,
-                key: '/job/saved',
-            }]
-            : [])
+        }
     ];
 
 
@@ -76,6 +76,60 @@ const Header = (props: any) => {
         console.log('click ', e);
         setCurrent(e.key);
     };
+
+    const getNotificationReadStorageKey = () => {
+        return `resume_notification_read_at_${user?.id || 'anonymous'}`;
+    };
+
+    const markNotificationsAsRead = () => {
+        localStorage.setItem(getNotificationReadStorageKey(), new Date().toISOString());
+        setUnreadCount(0);
+    };
+
+    const fetchResumeNotifications = async (showLoading = false) => {
+        if (!isAuthenticated || !user?.id) {
+            setNotifications([]);
+            setUnreadCount(0);
+            return;
+        }
+
+        if (showLoading) {
+            setIsLoadingNotification(true);
+        }
+
+        try {
+            const res = await callFetchResumeByUser('page=1&size=20&sort=updatedAt,desc');
+            const items = (res?.data?.result || []).filter((item) => item.status && item.status !== 'PENDING');
+            setNotifications(items);
+
+            const lastRead = localStorage.getItem(getNotificationReadStorageKey());
+            const lastReadTime = lastRead ? new Date(lastRead).getTime() : 0;
+            const unread = items.filter((item) => {
+                if (!item.updatedAt) return false;
+                return new Date(item.updatedAt).getTime() > lastReadTime;
+            }).length;
+            setUnreadCount(unread);
+        } finally {
+            if (showLoading) {
+                setIsLoadingNotification(false);
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (!isAuthenticated || !user?.id) {
+            setNotifications([]);
+            setUnreadCount(0);
+            return;
+        }
+
+        fetchResumeNotifications(true);
+        const intervalId = window.setInterval(() => {
+            fetchResumeNotifications(false);
+        }, 15000);
+
+        return () => window.clearInterval(intervalId);
+    }, [isAuthenticated, user?.id]);
 
     const handleLogout = async () => {
         const res = await callLogout();
@@ -90,9 +144,23 @@ const Header = (props: any) => {
         {
             label: <label
                 style={{ cursor: 'pointer' }}
+                onClick={() => {
+                    setOpenNotificationModal(true);
+                    markNotificationsAsRead();
+                }}
+            >Thông báo {unreadCount > 0 ? `(${unreadCount})` : ''}</label>,
+            key: 'notifications',
+        },
+        {
+            label: <label
+                style={{ cursor: 'pointer' }}
                 onClick={() => setOpenAccountModal(true)}
             >Quản lý tài khoản</label>,
             key: 'manage-account',
+        },
+        {
+            label: <Link to={'/job/saved'}>Job đã lưu</Link>,
+            key: '/job/saved',
         },
         canAccessAdmin ? {
             label: <Link to={'/admin'}>Trang quản trị</Link>,
@@ -146,9 +214,11 @@ const Header = (props: any) => {
                                         :
                                         <Dropdown menu={{ items: itemsDropdown }} trigger={['click']}>
                                             <Space className={styles['userDropdown']}>
-                                                <Avatar style={{ backgroundColor: '#e11d48', color: '#ffffff' }}>
-                                                    {user?.name?.substring(0, 2)?.toUpperCase()}
-                                                </Avatar>
+                                                <Badge count={unreadCount} size="small" overflowCount={9}>
+                                                    <Avatar style={{ backgroundColor: '#e11d48', color: '#ffffff' }}>
+                                                        {user?.name?.substring(0, 2)?.toUpperCase()}
+                                                    </Avatar>
+                                                </Badge>
                                             </Space>
                                         </Dropdown>
                                     }
@@ -179,6 +249,12 @@ const Header = (props: any) => {
             <AccountManageModal
                 open={openAccountModal}
                 onClose={() => setOpenAccountModal(false)}
+            />
+            <NotificationsModal
+                open={openNotificationModal}
+                onClose={() => setOpenNotificationModal(false)}
+                notifications={notifications}
+                loading={isLoadingNotification}
             />
         </>
     )
