@@ -6,7 +6,7 @@ import { fetchPermission } from "@/redux/slice/permissionSlide";
 import { IPermission } from "@/types/backend";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { ActionType, ProColumns, ProFormSelect } from "@ant-design/pro-components";
-import { Button, Popconfirm, Space, message, notification } from "antd";
+import { Button, Popconfirm, Space, Tag, message, notification } from "antd";
 import dayjs from "dayjs";
 import queryString from "query-string";
 import { useRef, useState } from "react";
@@ -70,6 +70,17 @@ const PermissionPage = () => {
             title: 'Phương thức',
             dataIndex: 'method',
             sorter: true,
+            render: (_value, record) => {
+                const method = (record.method || '').toUpperCase();
+                const colorMap: Record<string, string> = {
+                    GET: 'green',
+                    POST: 'blue',
+                    PUT: 'orange',
+                    DELETE: 'red',
+                };
+
+                return <Tag color={colorMap[method] || 'default'}>{method || '--'}</Tag>;
+            },
             renderFormItem: () => (
                 <ProFormSelect
                     showSearch
