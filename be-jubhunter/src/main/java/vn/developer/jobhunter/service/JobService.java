@@ -253,8 +253,8 @@ public class JobService {
             favoriteJobs = new ArrayList<>();
         }
 
-        favoriteJobs.sort(Comparator.comparing(Job::getUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed()
-                .thenComparing(Job::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed());
+        favoriteJobs.sort(
+            Comparator.comparing(Job::getUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed());
 
         int page = Math.max(pageable.getPageNumber(), 0);
         int size = pageable.getPageSize() <= 0 ? 10 : pageable.getPageSize();
