@@ -11,5 +11,9 @@ public interface RoleRepository extends JpaRepository<Role, Long>,
                 JpaSpecificationExecutor<Role> {
         boolean existsByName(String name);
 
+        boolean existsByNameAndComId(String name, Long comId);
+
+        boolean existsByNameAndComIdIsNull(String name);
+
         Role findByName(String name);
 }

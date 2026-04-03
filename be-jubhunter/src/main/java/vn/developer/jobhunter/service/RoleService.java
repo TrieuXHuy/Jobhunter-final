@@ -31,6 +31,13 @@ public class RoleService {
         return this.roleRepository.existsByName(name);
     }
 
+    public boolean existByNameAndCompany(String name, Long comId) {
+        if (comId == null) {
+            return this.roleRepository.existsByNameAndComIdIsNull(name);
+        }
+        return this.roleRepository.existsByNameAndComId(name, comId);
+    }
+
     public Role create(Role r) {
         // check permissions
         if (r.getPermissions() != null) {
@@ -66,6 +73,7 @@ public class RoleService {
 
         roleDB.setName(r.getName());
         roleDB.setDescription(r.getDescription());
+        roleDB.setComId(r.getComId());
         roleDB.setActive(r.isActive());
         roleDB.setPermissions(r.getPermissions());
         roleDB = this.roleRepository.save(roleDB);

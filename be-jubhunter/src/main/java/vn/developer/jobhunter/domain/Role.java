@@ -34,6 +34,7 @@ public class Role {
     private String name;
 
     private String description;
+    private Long comId;
     private boolean active;
     private Instant createdAt;
     private Instant updatedAt;
